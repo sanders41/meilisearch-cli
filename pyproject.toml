@@ -1,0 +1,58 @@
+[tool.poetry]
+name = "meilisearch-cli"
+version = "0.1.0"
+description = "CLI for MeiliSearch"
+authors = ["Paul Sanders <psanders1@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+black = "^21.8b0"
+flake8 = "^4.0.1"
+isort = "^5.9.3"
+mypy = "^0.910"
+pre-commit = "^2.15.0"
+pytest = "^6.2.5"
+pytest-cov = "^2.12.1"
+tox = "^3.24.3"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.egg
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.nox
+  | \.tox
+  | \.venv
+  | \venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | setup.py
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+src_paths = ["meilisearch_cli", "tests"]
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--cov=meilisearch_cli"
