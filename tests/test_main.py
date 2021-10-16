@@ -320,6 +320,21 @@ def test_get_settings_no_url_master_key(remove_env, index_uid, test_runner, monk
         assert remove_env in out
 
 
+@pytest.mark.usefixtures("env_vars")
+def test_get_settings_index_not_found_error(test_runner, index_uid):
+    runner_result = test_runner.invoke(app, ["get-settings", index_uid])
+    out = runner_result.stdout
+    assert "not found" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+@patch.object(Index, "get_settings")
+def test_get_settings_error(mock_get, test_runner, index_uid):
+    mock_get.side_effect = MeiliSearchApiError("bad", Response())
+    with pytest.raises(MeiliSearchApiError):
+        test_runner.invoke(app, ["get-settings", index_uid], catch_exceptions=False)
+
+
 @pytest.mark.parametrize("use_env", [True, False])
 def test_get_version(use_env, base_url, master_key, test_runner, monkeypatch):
     args = ["get-version"]
@@ -437,6 +452,39 @@ def test_reset_displayed_attributes_no_url_master_key(
         assert remove_env in out
 
 
+@pytest.mark.usefixtures("env_vars")
+def test_reset_displayed_attributes_index_not_found_error(test_runner, index_uid):
+    runner_result = test_runner.invoke(app, ["reset-displayed-attributes", index_uid])
+    out = runner_result.stdout
+    assert "not found" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+@patch.object(Index, "get_update_status")
+def test_reset_displayed_attributes_failed_status(mock_get, test_runner, client, index_uid):
+    mock_get.side_effect = [
+        {
+            "status": "failed",
+            "updateId": 0,
+            "type": {"name": "ResetDisplayedAttributes", "number": 0},
+            "enqueuedAt": "2021-02-14T14:07:09.364505700Z",
+        }
+    ]
+
+    client.create_index(index_uid)
+    runner_result = test_runner.invoke(app, ["reset-displayed-attributes", index_uid, "-w"])
+    out = runner_result.stdout
+    assert "'status': 'failed'" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+@patch.object(Index, "reset_displayed_attributes")
+def test_reset_displayed_attributes_error(mock_get, test_runner, index_uid):
+    mock_get.side_effect = MeiliSearchApiError("bad", Response())
+    with pytest.raises(MeiliSearchApiError):
+        test_runner.invoke(app, ["reset-displayed-attributes", index_uid], catch_exceptions=False)
+
+
 @pytest.mark.parametrize(
     "wait_flag, expected", [(None, "updateId"), ("--wait", "None"), ("-w", "None")]
 )
@@ -490,6 +538,21 @@ def test_reset_distinct_attribute_no_url_master_key(
         assert remove_env in out
 
 
+@pytest.mark.usefixtures("env_vars")
+def test_reset_distinct_attribute_index_not_found_error(test_runner, index_uid):
+    runner_result = test_runner.invoke(app, ["reset-distinct-attribute", index_uid])
+    out = runner_result.stdout
+    assert "not found" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+@patch.object(Index, "reset_distinct_attribute")
+def test_reset_distinct_attribute_error(mock_get, test_runner, index_uid):
+    mock_get.side_effect = MeiliSearchApiError("bad", Response())
+    with pytest.raises(MeiliSearchApiError):
+        test_runner.invoke(app, ["reset-distinct-attribute", index_uid], catch_exceptions=False)
+
+
 @pytest.mark.parametrize(
     "wait_flag, expected", [(None, "updateId"), ("--wait", "[]"), ("-w", "[]")]
 )
@@ -541,6 +604,21 @@ def test_reset_filterable_attributes_no_url_master_key(
         assert "MEILI_MASTER_KEY" in out
     else:
         assert remove_env in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_reset_filterable_attributes_index_not_found_error(test_runner, index_uid):
+    runner_result = test_runner.invoke(app, ["reset-filterable-attributes", index_uid])
+    out = runner_result.stdout
+    assert "not found" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+@patch.object(Index, "reset_filterable_attributes")
+def test_reset_filterable_attributes_error(mock_get, test_runner, index_uid):
+    mock_get.side_effect = MeiliSearchApiError("bad", Response())
+    with pytest.raises(MeiliSearchApiError):
+        test_runner.invoke(app, ["reset-filterable-attributes", index_uid], catch_exceptions=False)
 
 
 @pytest.mark.parametrize(
@@ -599,6 +677,21 @@ def test_reset_ranking_rules_no_url_master_key(remove_env, index_uid, test_runne
         assert remove_env in out
 
 
+@pytest.mark.usefixtures("env_vars")
+def test_reset_ranking_rules_index_not_found_error(test_runner, index_uid):
+    runner_result = test_runner.invoke(app, ["reset-ranking-rules", index_uid])
+    out = runner_result.stdout
+    assert "not found" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+@patch.object(Index, "reset_ranking_rules")
+def test_reset_ranking_rules_error(mock_get, test_runner, index_uid):
+    mock_get.side_effect = MeiliSearchApiError("bad", Response())
+    with pytest.raises(MeiliSearchApiError):
+        test_runner.invoke(app, ["reset-ranking-rules", index_uid], catch_exceptions=False)
+
+
 @pytest.mark.parametrize(
     "wait_flag, expected", [(None, "updateId"), ("--wait", "['*']"), ("-w", "['*']")]
 )
@@ -650,6 +743,21 @@ def test_reset_searchable_attributes_no_url_master_key(
         assert "MEILI_MASTER_KEY" in out
     else:
         assert remove_env in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_reset_searchable_attributes_index_not_found_error(test_runner, index_uid):
+    runner_result = test_runner.invoke(app, ["reset-searchable-attributes", index_uid])
+    out = runner_result.stdout
+    assert "not found" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+@patch.object(Index, "reset_searchable_attributes")
+def test_reset_searchable_attributes_error(mock_get, test_runner, index_uid):
+    mock_get.side_effect = MeiliSearchApiError("bad", Response())
+    with pytest.raises(MeiliSearchApiError):
+        test_runner.invoke(app, ["reset-searchable-attributes", index_uid], catch_exceptions=False)
 
 
 @pytest.mark.parametrize("wait_flag", [None, "--wait", "-w"])
@@ -725,6 +833,21 @@ def test_reset_settings_no_url_master_key(remove_env, index_uid, test_runner, mo
         assert remove_env in out
 
 
+@pytest.mark.usefixtures("env_vars")
+def test_reset_settings_index_not_found_error(test_runner, index_uid):
+    runner_result = test_runner.invoke(app, ["reset-settings", index_uid])
+    out = runner_result.stdout
+    assert "not found" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+@patch.object(Index, "reset_settings")
+def test_reset_settings_error(mock_get, test_runner, index_uid):
+    mock_get.side_effect = MeiliSearchApiError("bad", Response())
+    with pytest.raises(MeiliSearchApiError):
+        test_runner.invoke(app, ["reset-settings", index_uid], catch_exceptions=False)
+
+
 @pytest.mark.parametrize(
     "wait_flag, expected", [(None, "updateId"), ("--wait", "[]"), ("-w", "[]")]
 )
@@ -776,6 +899,21 @@ def test_reset_stop_words_no_url_master_key(remove_env, index_uid, test_runner, 
         assert remove_env in out
 
 
+@pytest.mark.usefixtures("env_vars")
+def test_reset_stop_words_index_not_found_error(test_runner, index_uid):
+    runner_result = test_runner.invoke(app, ["reset-stop-words", index_uid])
+    out = runner_result.stdout
+    assert "not found" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+@patch.object(Index, "reset_stop_words")
+def test_reset_stop_words_error(mock_get, test_runner, index_uid):
+    mock_get.side_effect = MeiliSearchApiError("bad", Response())
+    with pytest.raises(MeiliSearchApiError):
+        test_runner.invoke(app, ["reset-stop-words", index_uid], catch_exceptions=False)
+
+
 @pytest.mark.parametrize(
     "wait_flag, expected", [(None, "updateId"), ("--wait", "{}"), ("-w", "{}")]
 )
@@ -825,6 +963,21 @@ def test_reset_syonyms_no_url_master_key(remove_env, index_uid, test_runner, mon
         assert "MEILI_MASTER_KEY" in out
     else:
         assert remove_env in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_reset_synonyms_index_not_found_error(test_runner, index_uid):
+    runner_result = test_runner.invoke(app, ["reset-synonyms", index_uid])
+    out = runner_result.stdout
+    assert "not found" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+@patch.object(Index, "reset_synonyms")
+def test_reset_synonyms_error(mock_get, test_runner, index_uid):
+    mock_get.side_effect = MeiliSearchApiError("bad", Response())
+    with pytest.raises(MeiliSearchApiError):
+        test_runner.invoke(app, ["reset-synonyms", index_uid], catch_exceptions=False)
 
 
 @pytest.mark.parametrize(
@@ -1003,6 +1156,40 @@ def test_update_index_no_url_master_key(remove_env, index_uid, test_runner, monk
         assert remove_env in out
 
 
+@pytest.mark.usefixtures("env_vars")
+def test_update_index_not_found_error(test_runner, index_uid):
+    runner_result = test_runner.invoke(app, ["update-index", index_uid, "--primary-key", "test"])
+    out = runner_result.stdout
+    assert "not found" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+@patch.object(Index, "update")
+def test_update_index_error(mock_get, test_runner, index_uid):
+    mock_get.side_effect = MeiliSearchApiError("bad", Response())
+    with pytest.raises(MeiliSearchApiError):
+        test_runner.invoke(
+            app, ["update-index", index_uid, "--primary-key", "test"], catch_exceptions=False
+        )
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_update_index_primary_key_exists(
+    index_uid,
+    test_runner,
+    client,
+):
+    primary_key = "title"
+    args = ["update-index", index_uid, "--primary-key", primary_key]
+
+    index = client.create_index(index_uid, {"primaryKey": "id"})
+    assert index.primary_key == "id"
+    runner_result = test_runner.invoke(app, args)
+
+    out = runner_result.stdout
+    assert "cannot be reset" in out
+
+
 @pytest.mark.parametrize(
     "wait_flag, expected",
     [
@@ -1084,7 +1271,7 @@ def test_update_searchable_attributes(
     client,
     monkeypatch,
 ):
-    args = ["update-sortable-attributes", index_uid, "genre", "title"]
+    args = ["update-searchable-attributes", index_uid, "genre", "title"]
 
     if wait_flag:
         args.append(wait_flag)
@@ -1100,7 +1287,7 @@ def test_update_searchable_attributes(
 
     index = client.create_index(index_uid)
     runner_result = test_runner.invoke(app, args)
-    assert index.get_sortable_attributes() == ["genre", "title"]
+    assert index.get_searchable_attributes() == ["genre", "title"]
 
     out = runner_result.stdout
     assert expected in out
@@ -1108,7 +1295,7 @@ def test_update_searchable_attributes(
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
 @pytest.mark.usefixtures("env_vars")
-def test_update_sortable_attributes_no_url_master_key(
+def test_update_searchable_attributes_no_url_master_key(
     remove_env, index_uid, test_runner, monkeypatch
 ):
     if remove_env == "all":
@@ -1117,7 +1304,7 @@ def test_update_sortable_attributes_no_url_master_key(
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["update-sortable-attributes", index_uid, "title"])
+    runner_result = test_runner.invoke(app, ["update-searchable-attributes", index_uid, "title"])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -1232,6 +1419,24 @@ def test_update_settings_no_url_master_key(remove_env, index_uid, test_runner, m
         assert "MEILI_MASTER_KEY" in out
     else:
         assert remove_env in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_update_settings_json_error(
+    index_uid,
+    test_runner,
+):
+    args = [
+        "update-settings",
+        index_uid,
+        "--synonyms",
+        "test",
+    ]
+
+    runner_result = test_runner.invoke(app, args)
+
+    out = runner_result.stdout
+    assert "Unable to parse" in out
 
 
 @pytest.mark.parametrize(
@@ -1419,3 +1624,20 @@ def test_update_synonyms_no_url_master_key(remove_env, index_uid, test_runner, m
         assert "MEILI_MASTER_KEY" in out
     else:
         assert remove_env in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_update_synonyms_json_error(
+    index_uid,
+    test_runner,
+):
+    args = [
+        "update-synonyms",
+        index_uid,
+        "test",
+    ]
+
+    runner_result = test_runner.invoke(app, args)
+
+    out = runner_result.stdout
+    assert "Unable to parse" in out

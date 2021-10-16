@@ -472,20 +472,14 @@ def update_displayed_attributes(
     verify_url_and_master_key(console, url, master_key)
 
     client_index = Client(url, master_key).index(index)
-    try:
-        with console.status("Updating displayed attributes..."):
-            process_settings(
-                client_index,
-                partial(client_index.update_displayed_attributes, displayed_attributes),
-                client_index.get_displayed_attributes,
-                wait,
-                console,
-            )
-    except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
-        else:
-            raise e
+    with console.status("Updating displayed attributes..."):
+        process_settings(
+            client_index,
+            partial(client_index.update_displayed_attributes, displayed_attributes),
+            client_index.get_displayed_attributes,
+            wait,
+            console,
+        )
 
 
 @app.command()
@@ -505,20 +499,14 @@ def update_distinct_attribute(
     verify_url_and_master_key(console, url, master_key)
 
     client_index = Client(url, master_key).index(index)
-    try:
-        with console.status("Updating distinct attribute..."):
-            process_settings(
-                client_index,
-                partial(client_index.update_distinct_attribute, distinct_attribute),
-                client_index.get_distinct_attribute,
-                wait,
-                console,
-            )
-    except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
-        else:
-            raise e
+    with console.status("Updating distinct attribute..."):
+        process_settings(
+            client_index,
+            partial(client_index.update_distinct_attribute, distinct_attribute),
+            client_index.get_distinct_attribute,
+            wait,
+            console,
+        )
 
 
 @app.command()
@@ -575,20 +563,14 @@ def update_ranking_rules(
     verify_url_and_master_key(console, url, master_key)
 
     client_index = Client(url, master_key).index(index)
-    try:
-        with console.status("Updating ranking rules..."):
-            process_settings(
-                client_index,
-                partial(client_index.update_ranking_rules, ranking_rules),
-                client_index.get_ranking_rules,
-                wait,
-                console,
-            )
-    except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
-        else:
-            raise e
+    with console.status("Updating ranking rules..."):
+        process_settings(
+            client_index,
+            partial(client_index.update_ranking_rules, ranking_rules),
+            client_index.get_ranking_rules,
+            wait,
+            console,
+        )
 
 
 @app.command()
@@ -608,20 +590,14 @@ def update_searchable_attributes(
     verify_url_and_master_key(console, url, master_key)
 
     client_index = Client(url, master_key).index(index)
-    try:
-        with console.status("Updating searchable attributes..."):
-            process_settings(
-                client_index,
-                partial(client_index.update_searchable_attributes, searchable_attributes),
-                client_index.get_searchable_attributes,
-                wait,
-                console,
-            )
-    except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
-        else:
-            raise e
+    with console.status("Updating searchable attributes..."):
+        process_settings(
+            client_index,
+            partial(client_index.update_searchable_attributes, searchable_attributes),
+            client_index.get_searchable_attributes,
+            wait,
+            console,
+        )
 
 
 @app.command()
@@ -683,11 +659,6 @@ def update_settings(
             )
     except json.decoder.JSONDecodeError:
         console.print(f"Unable to parse {synonyms} as JSON", style="red")
-    except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
-        else:
-            raise e
 
 
 @app.command()
@@ -707,20 +678,14 @@ def update_sortable_attributes(
     verify_url_and_master_key(console, url, master_key)
 
     client_index = Client(url, master_key).index(index)
-    try:
-        with console.status("Updating sortable attributes..."):
-            process_settings(
-                client_index,
-                partial(client_index.update_sortable_attributes, sortable_attributes),
-                client_index.get_sortable_attributes,
-                wait,
-                console,
-            )
-    except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
-        else:
-            raise e
+    with console.status("Updating sortable attributes..."):
+        process_settings(
+            client_index,
+            partial(client_index.update_sortable_attributes, sortable_attributes),
+            client_index.get_sortable_attributes,
+            wait,
+            console,
+        )
 
 
 @app.command()
@@ -738,20 +703,14 @@ def update_stop_words(
     verify_url_and_master_key(console, url, master_key)
 
     client_index = Client(url, master_key).index(index)
-    try:
-        with console.status("Updating stop words..."):
-            process_settings(
-                client_index,
-                partial(client_index.update_stop_words, stop_words),
-                client_index.get_stop_words,
-                wait,
-                console,
-            )
-    except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
-        else:
-            raise e
+    with console.status("Updating stop words..."):
+        process_settings(
+            client_index,
+            partial(client_index.update_stop_words, stop_words),
+            client_index.get_stop_words,
+            wait,
+            console,
+        )
 
 
 @app.command()
@@ -782,11 +741,6 @@ def update_synonyms(
             )
     except json.decoder.JSONDecodeError:
         console.print(f"Unable to parse {synonyms} as JSON", style="red")
-    except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
-        else:
-            raise e
 
 
 if __name__ == "__main__":
