@@ -84,6 +84,33 @@ def delete_index(
 
 
 @app.command()
+def get_all_update_status(
+    index: str = Argument(
+        ..., help="The name of the index from which to retrieve the update status"
+    ),
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+) -> None:
+    """Get all update update statuses of an index."""
+
+    verify_url_and_master_key(console, url, master_key)
+
+    client = Client(url, master_key)
+    try:
+        with console.status("Getting update status..."):
+            status = client.index(index).get_all_update_status()
+
+        console.print(status)
+    except MeiliSearchApiError as e:
+        if e.error_code == "index_not_found":
+            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+        else:
+            raise e
+
+
+@app.command()
 def get_index(
     index: str = Argument(..., help="The name of the index to retrieve"),
     url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
@@ -145,8 +172,33 @@ def get_keys(
 
 
 @app.command()
+def get_primary_key(
+    index: str = Argument(..., help="The name of the index from which to retrieve the primary key"),
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+) -> None:
+    """Get the primary key of an index."""
+
+    verify_url_and_master_key(console, url, master_key)
+
+    client = Client(url, master_key)
+    try:
+        with console.status("Getting primary key..."):
+            primary_key = client.index(index).get_primary_key()
+
+        console.print(primary_key)
+    except MeiliSearchApiError as e:
+        if e.error_code == "index_not_found":
+            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+        else:
+            raise e
+
+
+@app.command()
 def get_settings(
-    index: str = Argument(..., help="The name of the index to retrieve"),
+    index: str = Argument(..., help="The name of the index from which to retrieve the settings"),
     url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
     master_key: Optional[str] = Option(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
@@ -162,6 +214,34 @@ def get_settings(
             settings = client.index(index).get_settings()
 
         console.print(settings)
+    except MeiliSearchApiError as e:
+        if e.error_code == "index_not_found":
+            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+        else:
+            raise e
+
+
+@app.command()
+def get_update_status(
+    index: str = Argument(
+        ..., help="The name of the index from which to retrieve the update status"
+    ),
+    update_id: int = Argument(..., help="The update ID for the update status"),
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+) -> None:
+    """Get the update status of an index."""
+
+    verify_url_and_master_key(console, url, master_key)
+
+    client = Client(url, master_key)
+    try:
+        with console.status("Getting update status..."):
+            status = client.index(index).get_update_status(update_id)
+
+        console.print(status)
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
             console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
