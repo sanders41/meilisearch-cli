@@ -222,6 +222,31 @@ def get_settings(
 
 
 @app.command()
+def get_stats(
+    index: str = Argument(..., help="The name of the index from which to retrieve the stats"),
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+) -> None:
+    """Get the stats of an index."""
+
+    verify_url_and_master_key(console, url, master_key)
+
+    client = Client(url, master_key)
+    try:
+        with console.status("Getting stats..."):
+            settings = client.index(index).get_stats()
+
+        console.print(settings)
+    except MeiliSearchApiError as e:
+        if e.error_code == "index_not_found":
+            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+        else:
+            raise e
+
+
+@app.command()
 def get_update_status(
     index: str = Argument(
         ..., help="The name of the index from which to retrieve the update status"
