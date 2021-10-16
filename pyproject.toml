@@ -8,6 +8,10 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.7"
+meilisearch = "^0.16.2"
+typer = "^0.4.0"
+rich = "^10.12.0"
+requests = "^2.26.0"
 
 [tool.poetry.dev-dependencies]
 black = "^21.8b0"
@@ -22,6 +26,9 @@ tox = "^3.24.3"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+meilisearch-cli = "meilisearch_cli.main:app"
 
 [tool.black]
 line-length = 100
@@ -56,3 +63,6 @@ disallow_untyped_defs = true
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "--cov=meilisearch_cli"
+
+[tool.coverage.report]
+exclude_lines = ["if __name__ == .__main__.:", "pragma: no cover"]
