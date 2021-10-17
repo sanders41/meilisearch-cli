@@ -876,6 +876,131 @@ def update_distinct_attribute(
 
 
 @app.command()
+def update_documents(
+    index: str = Argument(..., help="The name of the index from which to update the documents"),
+    documents: str = Argument(..., help="A JSON string of documents"),
+    primary_key: str = Option(
+        None,
+        help="The primary key for the documents. Will be ignored if a primary key is already set",
+    ),
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+) -> None:
+    """Update documents in an index."""
+
+    verify_url_and_master_key(console, url, master_key)
+
+    client_index = Client(url, master_key).index(index)
+    try:
+        with console.status("Updating documents..."):
+            process_request(
+                client_index,
+                partial(client_index.update_documents, json.loads(documents), primary_key),
+                client_index.get_documents,
+                wait,
+                console,
+            )
+    except json.decoder.JSONDecodeError:
+        console.print(f"Unable to parse {documents} as JSON", style="red")
+
+
+@app.command()
+def update_documents_from_file(
+    index: str = Argument(..., help="The name of the index from which to update the documents"),
+    file_path: Path = Argument(
+        ...,
+        exists=True,
+        help="The path to the file containing the documents. Accepted file types are .json, .csv, and .ndjson",
+    ),
+    primary_key: str = Option(
+        None,
+        help="The primary key for the documents. Will be ignored if a primary key is already set",
+    ),
+    encoding: str = Option("utf-8", help="The encoding type for the file"),
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+) -> None:
+    """Update documents in an index from a file."""
+
+    file_type = file_path.suffix
+
+    if file_type not in (".json", ".csv", ".ndjson"):
+        console.print(
+            f"[yellow]{file_type}[/yellow] files are not accepted. Only .json, .csv, and .ndjson are accepted",
+            style="red",
+        )
+        sys.exit()
+
+    verify_url_and_master_key(console, url, master_key)
+
+    with console.status("Adding documents..."):
+        with open(file_path, "r") as f:
+            documents = f.read().encode(encoding)
+
+        if file_type == ".csv":
+            content_type = "text/csv"
+        elif file_type == ".json":
+            content_type = "application/json"
+        elif file_type == ".ndjson":
+            content_type = "application/x-ndjson"
+
+        client_index = Client(url, master_key).index(index)
+        process_request(
+            client_index,
+            partial(client_index.add_documents_raw, documents, primary_key, content_type),
+            client_index.get_documents,
+            wait,
+            console,
+        )
+
+
+@app.command()
+def update_documents_in_batches(
+    index: str = Argument(..., help="The name of the index from which to add the documents"),
+    documents: str = Argument(..., help="A JSON string of documents"),
+    primary_key: str = Option(
+        None,
+        help="The primary key for the documents. Will be ignored if a primary key is already set",
+    ),
+    batch_size: int = Option(
+        1000, help="The number of documents that should be included in each batch."
+    ),
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+) -> None:
+    """Add documents to an index in batches."""
+
+    verify_url_and_master_key(console, url, master_key)
+
+    client_index = Client(url, master_key).index(index)
+    try:
+        with console.status("Adding documents..."):
+            process_request(
+                client_index,
+                partial(
+                    client_index.update_documents_in_batches,
+                    json.loads(documents),
+                    batch_size,
+                    primary_key,
+                ),
+                client_index.get_documents,
+                wait,
+                console,
+            )
+    except json.decoder.JSONDecodeError:
+        console.print(f"Unable to parse {documents} as JSON", style="red")
+
+
+@app.command()
 def update_index(
     index: str = Argument(
         ..., help="The name of the index for which the settings should be udpated"
