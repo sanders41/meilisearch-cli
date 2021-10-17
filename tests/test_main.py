@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch
 
 import pytest
@@ -7,6 +8,73 @@ from meilisearch.index import Index
 from requests import Response
 
 from meilisearch_cli.main import app
+
+
+@pytest.mark.parametrize(
+    "wait_flag, expected",
+    [(None, "updateId"), ("--wait", "'title': 'Pet Sematary'"), ("-w", "'title': 'Pet Sematary'")],
+)
+@pytest.mark.parametrize("use_env", [True, False])
+def test_add_documents(
+    use_env,
+    wait_flag,
+    expected,
+    index_uid,
+    base_url,
+    master_key,
+    test_runner,
+    small_movies,
+    monkeypatch,
+):
+    args = ["add-documents", index_uid, json.dumps(small_movies)]
+
+    if wait_flag:
+        args.append(wait_flag)
+
+    if use_env:
+        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
+        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
+    else:
+        args.append("--url")
+        args.append(base_url)
+        args.append("--master-key")
+        args.append(master_key)
+
+    runner_result = test_runner.invoke(app, args)
+    out = runner_result.stdout
+    assert expected in out
+
+
+@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
+@pytest.mark.usefixtures("env_vars")
+def test_get_add_documents_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
+    if remove_env == "all":
+        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
+        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
+    else:
+        monkeypatch.delenv(remove_env, raising=False)
+
+    runner_result = test_runner.invoke(app, ["add-documents", index_uid, '{"test": "test"}'])
+    out = runner_result.stdout
+
+    if remove_env == "all":
+        assert "MEILI_HTTP_ADDR" in out
+        assert "MEILI_MASTER_KEY" in out
+    else:
+        assert remove_env in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_add_documents_json_error(
+    index_uid,
+    test_runner,
+):
+    args = ["add-documents", index_uid, "test"]
+
+    runner_result = test_runner.invoke(app, args)
+
+    out = runner_result.stdout
+    assert "Unable to parse" in out
 
 
 @pytest.mark.parametrize("primary_key", [None, "alt_id"])
@@ -169,9 +237,7 @@ def test_get_all_update_status(
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
 @pytest.mark.usefixtures("env_vars")
-def test_get_get_all_update_status_no_url_master_key(
-    remove_env, index_uid, test_runner, monkeypatch
-):
+def test_get_all_update_status_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
     if remove_env == "all":
         monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
         monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
@@ -230,7 +296,7 @@ def test_get_document(
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
 @pytest.mark.usefixtures("env_vars")
-def test_get_get_document_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
+def test_get_document_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
     if remove_env == "all":
         monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
         monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
@@ -248,7 +314,7 @@ def test_get_get_document_no_url_master_key(remove_env, index_uid, test_runner, 
 
 
 @pytest.mark.usefixtures("env_vars")
-def test_get_get_document_index_not_found_error(test_runner, index_uid):
+def test_get_document_index_not_found_error(test_runner, index_uid):
     runner_result = test_runner.invoke(app, ["get-document", index_uid, "test"])
     out = runner_result.stdout
     assert "not found" in out
@@ -289,7 +355,7 @@ def test_get_documents(
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
 @pytest.mark.usefixtures("env_vars")
-def test_get_get_documents_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
+def test_get_documents_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
     if remove_env == "all":
         monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
         monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
@@ -307,7 +373,7 @@ def test_get_get_documents_no_url_master_key(remove_env, index_uid, test_runner,
 
 
 @pytest.mark.usefixtures("env_vars")
-def test_get_get_documents_index_not_found_error(test_runner, index_uid):
+def test_get_documents_index_not_found_error(test_runner, index_uid):
     runner_result = test_runner.invoke(app, ["get-documents", index_uid])
     out = runner_result.stdout
     assert "not found" in out
@@ -658,7 +724,7 @@ def test_get_update_status(
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
 @pytest.mark.usefixtures("env_vars")
-def test_get_get_update_status_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
+def test_get_update_status_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
     if remove_env == "all":
         monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
         monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
