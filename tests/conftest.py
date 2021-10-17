@@ -1,3 +1,4 @@
+import csv
 import json
 
 import pytest
@@ -65,6 +66,38 @@ def clear_indexes(client):
 def small_movies():
     with open("./datasets/small_movies.json", "r", encoding="utf-8") as movie_file:
         yield json.loads(movie_file.read())
+
+
+@pytest.fixture
+def small_movies_json_path(small_movies, tmp_path):
+    file_path = tmp_path / "small_movies.json"
+    with open(file_path, "w") as f:
+        json.dump(small_movies, f)
+
+    return file_path
+
+
+@pytest.fixture
+def small_movies_csv_path(small_movies, tmp_path):
+    file_path = tmp_path / "small_movies.csv"
+    with open(file_path, "w") as f:
+        field_names = list(small_movies[0].keys())
+        writer = csv.DictWriter(f, fieldnames=field_names, quoting=csv.QUOTE_MINIMAL)
+        writer.writeheader()
+        writer.writerows(small_movies)
+
+    return file_path
+
+
+@pytest.fixture
+def small_movies_ndjson_path(small_movies, tmp_path):
+    file_path = tmp_path / "small_movies.ndjson"
+    nd_json = [json.dumps(x) for x in small_movies]
+    with open(file_path, "w") as f:
+        for line in nd_json:
+            f.write(f"{line}\n")
+
+    return file_path
 
 
 @pytest.fixture

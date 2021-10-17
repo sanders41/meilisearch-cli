@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sys
 from functools import partial
+from pathlib import Path
 from typing import Any, List, Optional
 
 from meilisearch import Client
@@ -35,7 +36,7 @@ def add_documents(
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
 ) -> None:
-    """Get add documents to an index."""
+    """Add documents to an index."""
 
     verify_url_and_master_key(console, url, master_key)
 
@@ -51,6 +52,59 @@ def add_documents(
             )
     except json.decoder.JSONDecodeError:
         console.print(f"Unable to parse {documents} as JSON", style="red")
+
+
+@app.command()
+def add_documents_from_file(
+    index: str = Argument(..., help="The name of the index from which to add the documents"),
+    file_path: Path = Argument(
+        ...,
+        exists=True,
+        help="The path to the file containing the documents. Accepted file types are .json, .csv, and .ndjson",
+    ),
+    primary_key: str = Option(
+        None,
+        help="The primary key for the documents. Will be ignored if a primary key is already set",
+    ),
+    encoding: str = Option("utf-8", help="The encoding type for the file"),
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+) -> None:
+    """Add documents to an index from a file."""
+
+    file_type = file_path.suffix
+
+    if file_type not in (".json", ".csv", ".ndjson"):
+        console.print(
+            f"[yellow]{file_type}[/yellow] files are not accepted. Only .json, .csv, and .ndjson are accepted",
+            style="red",
+        )
+        sys.exit()
+
+    verify_url_and_master_key(console, url, master_key)
+
+    with console.status("Adding documents..."):
+        with open(file_path, "r") as f:
+            documents = f.read().encode(encoding)
+
+        if file_type == ".csv":
+            content_type = "text/csv"
+        elif file_type == ".json":
+            content_type = "application/json"
+        elif file_type == ".ndjson":
+            content_type = "application/x-ndjson"
+
+        client_index = Client(url, master_key).index(index)
+        process_request(
+            client_index,
+            partial(client_index.add_documents_raw, documents, primary_key, content_type),
+            client_index.get_documents,
+            wait,
+            console,
+        )
 
 
 @app.command()
@@ -70,7 +124,7 @@ def add_documents_in_batches(
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
 ) -> None:
-    """Get add documents to an index."""
+    """Add documents to an index in batches."""
 
     verify_url_and_master_key(console, url, master_key)
 
