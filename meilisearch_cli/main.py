@@ -40,7 +40,9 @@ def add_documents(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     try:
         with console.status("Adding documents..."):
             process_request(
@@ -97,7 +99,9 @@ def add_documents_from_file(
         elif file_type == ".ndjson":
             content_type = "application/x-ndjson"
 
-        client_index = Client(url, master_key).index(index)
+        # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+        # already verified they aren't None so ignore the MyPy warning
+        client_index = Client(url, master_key).index(index)  # type: ignore
         process_request(
             client_index,
             partial(client_index.add_documents_raw, documents, primary_key, content_type),
@@ -128,7 +132,9 @@ def add_documents_in_batches(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     try:
         with console.status("Adding documents..."):
             process_request(
@@ -160,7 +166,9 @@ def create_index(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client = Client(url, master_key)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
     try:
         with console.status("Creating index..."):
             if primary_key:
@@ -195,7 +203,9 @@ def delete_index(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client = Client(url, master_key)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
     try:
         with console.status("Deleting the index..."):
             response = client.index(index).delete()
@@ -223,7 +233,9 @@ def get_all_update_status(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client = Client(url, master_key)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
     try:
         with console.status("Getting update status..."):
             status = client.index(index).get_all_update_status()
@@ -249,7 +261,9 @@ def get_document(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client = Client(url, master_key)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
     try:
         with console.status("Getting document..."):
             status = client.index(index).get_document(document_id)
@@ -274,7 +288,9 @@ def get_documents(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client = Client(url, master_key)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
     try:
         with console.status("Getting documents..."):
             status = client.index(index).get_documents()
@@ -299,12 +315,14 @@ def get_index(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client = Client(url, master_key)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
     try:
         with console.status("Getting index..."):
-            index = client.get_raw_index(index)
+            returned_index = client.get_raw_index(index)
 
-        console.print(index)
+        console.print(returned_index)
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
             console.print(e.message, style="red")
@@ -323,7 +341,9 @@ def get_indexes(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client = Client(url, master_key)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
     with console.status("Getting indexes..."):
         indexes = client.get_raw_indexes()
 
@@ -341,7 +361,9 @@ def get_keys(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client = Client(url, master_key)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
     with console.status("Getting keys..."):
         keys = client.get_keys()
 
@@ -360,7 +382,9 @@ def get_primary_key(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client = Client(url, master_key)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
     try:
         with console.status("Getting primary key..."):
             primary_key = client.index(index).get_primary_key()
@@ -385,7 +409,9 @@ def get_settings(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client = Client(url, master_key)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
     try:
         with console.status("Getting settings..."):
             settings = client.index(index).get_settings()
@@ -410,7 +436,9 @@ def get_stats(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client = Client(url, master_key)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
     try:
         with console.status("Getting stats..."):
             settings = client.index(index).get_stats()
@@ -438,7 +466,9 @@ def get_update_status(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client = Client(url, master_key)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
     try:
         with console.status("Getting update status..."):
             status = client.index(index).get_update_status(update_id)
@@ -462,7 +492,9 @@ def get_version(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client = Client(url, master_key)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
     with console.status("Getting version..."):
         version = client.get_version()
 
@@ -504,7 +536,9 @@ def reset_displayed_attributes(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     try:
         with console.status("Resetting displayed attributes..."):
             process_request(
@@ -536,7 +570,9 @@ def reset_distinct_attribute(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     try:
         with console.status("Resetting distinct attribute..."):
             process_request(
@@ -568,7 +604,9 @@ def reset_filterable_attributes(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     try:
         with console.status("Resetting filterable attributes..."):
             process_request(
@@ -598,7 +636,9 @@ def reset_ranking_rules(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     try:
         with console.status("Resetting ranking rules..."):
             process_request(
@@ -630,7 +670,9 @@ def reset_searchable_attributes(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     try:
         with console.status("Resetting searchable attributes..."):
             process_request(
@@ -660,7 +702,9 @@ def reset_settings(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     try:
         with console.status("Resetting settings..."):
             process_request(
@@ -690,7 +734,9 @@ def reset_stop_words(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     try:
         with console.status("Resetting stop words..."):
             process_request(
@@ -720,7 +766,9 @@ def reset_synonyms(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     try:
         with console.status("Resetting synonyms..."):
             process_request(
@@ -773,7 +821,9 @@ def search(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client = Client(url, master_key)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
     search_params: dict[str, Any] = {}
 
     if offset:
@@ -837,7 +887,9 @@ def update_displayed_attributes(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     with console.status("Updating displayed attributes..."):
         process_request(
             client_index,
@@ -864,7 +916,9 @@ def update_distinct_attribute(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     with console.status("Updating distinct attribute..."):
         process_request(
             client_index,
@@ -893,7 +947,9 @@ def update_documents(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     try:
         with console.status("Updating documents..."):
             process_request(
@@ -950,7 +1006,9 @@ def update_documents_from_file(
         elif file_type == ".ndjson":
             content_type = "application/x-ndjson"
 
-        client_index = Client(url, master_key).index(index)
+        # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+        # already verified they aren't None so ignore the MyPy warning
+        client_index = Client(url, master_key).index(index)  # type: ignore
         process_request(
             client_index,
             partial(client_index.add_documents_raw, documents, primary_key, content_type),
@@ -981,7 +1039,9 @@ def update_documents_in_batches(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     try:
         with console.status("Adding documents..."):
             process_request(
@@ -1015,10 +1075,13 @@ def update_index(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client = Client(url, master_key)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
     try:
         with console.status("Updating index..."):
-            response = client.index(index).update(primaryKey=primary_key)
+            # Ignore type here because the meiliserach-python has the wrong type expected
+            response = client.index(index).update(primaryKey=primary_key)  # type: ignore
 
         index_display = {
             "uid": response.uid,
@@ -1053,7 +1116,9 @@ def update_ranking_rules(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     with console.status("Updating ranking rules..."):
         process_request(
             client_index,
@@ -1080,7 +1145,9 @@ def update_searchable_attributes(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     with console.status("Updating searchable attributes..."):
         process_request(
             client_index,
@@ -1120,7 +1187,9 @@ def update_settings(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     try:
         settings: dict[str, Any] = {}
 
@@ -1168,7 +1237,9 @@ def update_sortable_attributes(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     with console.status("Updating sortable attributes..."):
         process_request(
             client_index,
@@ -1193,7 +1264,9 @@ def update_stop_words(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     with console.status("Updating stop words..."):
         process_request(
             client_index,
@@ -1220,7 +1293,9 @@ def update_synonyms(
 
     verify_url_and_master_key(console, url, master_key)
 
-    client_index = Client(url, master_key).index(index)
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
     try:
         with console.status("Updating searchable attributes..."):
             process_request(

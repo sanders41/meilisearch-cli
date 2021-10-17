@@ -56,7 +56,7 @@ def verify_url_and_master_key(
         sys.exit()
 
 
-def wait_for_update(index: Index, update_id: str, console: Console) -> dict[str, Any] | None:
+def wait_for_update(index: Index, update_id: int, console: Console) -> dict[str, Any] | None:
     while True:
         get_update = index.get_update_status(update_id)
 
