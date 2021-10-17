@@ -90,6 +90,10 @@ jobs:
     - name: Install Dependencies
       if: steps.poetry-cache.outputs.cache-hit != 'true'
       run: poetry install
-    - name: Test with pytest
+    - name: Test with pytest --cov=meilisearch_cli --cov-report=xml
       run: |
         poetry run pytest
+    - name: Upload coverage
+      uses: codecov/codecov-action@v2.1.0
+      with:
+        fail_ci_if_error: true

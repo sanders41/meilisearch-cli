@@ -5,6 +5,19 @@ description = "CLI for MeiliSearch"
 authors = ["Paul Sanders <psanders1@gmail.com>"]
 license = "MIT"
 readme = "README.md"
+repository = "https://github.com/sanders41/meilisearch-cli"
+homepage = "https://github.com/sanders41/meilisearch-cli"
+documentation = "https://github.com/sanders41/meilisearch-cli"
+keywords = ["meilisearch", "cli"]
+classifiers=[
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+include = ["meilisearch_cli/py.typed"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
