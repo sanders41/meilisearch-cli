@@ -204,6 +204,124 @@ def test_get_all_update_status_error(mock_get, test_runner, index_uid):
 
 
 @pytest.mark.parametrize("use_env", [True, False])
+def test_get_document(
+    use_env, index_uid, base_url, master_key, test_runner, client, small_movies, monkeypatch
+):
+    client_index = client.create_index(index_uid)
+    update = client_index.add_documents(small_movies)
+    client_index.wait_for_pending_update(update["updateId"])
+    documents = client_index.get_documents()
+
+    args = ["get-document", index_uid, documents[0]["id"]]
+
+    if use_env:
+        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
+        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
+    else:
+        args.append("--url")
+        args.append(base_url)
+        args.append("--master-key")
+        args.append(master_key)
+
+    runner_result = test_runner.invoke(app, args)
+    out = runner_result.stdout
+    assert "'title': 'Pet Sematary'" in out
+
+
+@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
+@pytest.mark.usefixtures("env_vars")
+def test_get_get_document_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
+    if remove_env == "all":
+        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
+        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
+    else:
+        monkeypatch.delenv(remove_env, raising=False)
+
+    runner_result = test_runner.invoke(app, ["get-document", index_uid, "test"])
+    out = runner_result.stdout
+
+    if remove_env == "all":
+        assert "MEILI_HTTP_ADDR" in out
+        assert "MEILI_MASTER_KEY" in out
+    else:
+        assert remove_env in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_get_get_document_index_not_found_error(test_runner, index_uid):
+    runner_result = test_runner.invoke(app, ["get-document", index_uid, "test"])
+    out = runner_result.stdout
+    assert "not found" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+@patch.object(Index, "get_document")
+def test_get_document_error(mock_get, test_runner, index_uid):
+    mock_get.side_effect = MeiliSearchApiError("bad", Response())
+    with pytest.raises(MeiliSearchApiError):
+        test_runner.invoke(app, ["get-document", index_uid, "test"], catch_exceptions=False)
+
+
+@pytest.mark.parametrize("use_env", [True, False])
+def test_get_documents(
+    use_env, index_uid, base_url, master_key, test_runner, client, small_movies, monkeypatch
+):
+    client_index = client.create_index(index_uid)
+    update = client_index.add_documents(small_movies)
+    client_index.wait_for_pending_update(update["updateId"])
+
+    args = ["get-documents", index_uid]
+
+    if use_env:
+        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
+        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
+    else:
+        args.append("--url")
+        args.append(base_url)
+        args.append("--master-key")
+        args.append(master_key)
+
+    runner_result = test_runner.invoke(app, args)
+    out = runner_result.stdout
+    assert "'title': 'Pet Sematary'" in out
+    assert "'title': 'Us'" in out
+
+
+@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
+@pytest.mark.usefixtures("env_vars")
+def test_get_get_documents_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
+    if remove_env == "all":
+        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
+        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
+    else:
+        monkeypatch.delenv(remove_env, raising=False)
+
+    runner_result = test_runner.invoke(app, ["get-documents", index_uid])
+    out = runner_result.stdout
+
+    if remove_env == "all":
+        assert "MEILI_HTTP_ADDR" in out
+        assert "MEILI_MASTER_KEY" in out
+    else:
+        assert remove_env in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_get_get_documents_index_not_found_error(test_runner, index_uid):
+    runner_result = test_runner.invoke(app, ["get-documents", index_uid])
+    out = runner_result.stdout
+    assert "not found" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+@patch.object(Index, "get_documents")
+def test_get_documents_error(mock_get, test_runner, index_uid):
+    mock_get.side_effect = MeiliSearchApiError("bad", Response())
+    with pytest.raises(MeiliSearchApiError):
+        test_runner.invoke(app, ["get-documents", index_uid], catch_exceptions=False)
+
+
+@pytest.mark.parametrize("use_env", [True, False])
 def test_get_index(use_env, base_url, master_key, test_runner, index_uid, monkeypatch, client):
     args = ["get-index", index_uid]
 

@@ -111,6 +111,57 @@ def get_all_update_status(
 
 
 @app.command()
+def get_document(
+    index: str = Argument(..., help="The name of the index from which to retrieve the document"),
+    document_id: str = Argument(..., help="The id of the document to retrieve"),
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+) -> None:
+    """Get a document from an index."""
+
+    verify_url_and_master_key(console, url, master_key)
+
+    client = Client(url, master_key)
+    try:
+        with console.status("Getting document..."):
+            status = client.index(index).get_document(document_id)
+
+        console.print(status)
+    except MeiliSearchApiError as e:
+        if e.error_code == "index_not_found":
+            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+        else:
+            raise e
+
+
+@app.command()
+def get_documents(
+    index: str = Argument(..., help="The name of the index from which to retrieve the document"),
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+) -> None:
+    """Get all documents from an index."""
+
+    verify_url_and_master_key(console, url, master_key)
+
+    client = Client(url, master_key)
+    try:
+        with console.status("Getting document..."):
+            status = client.index(index).get_documents()
+
+        console.print(status)
+    except MeiliSearchApiError as e:
+        if e.error_code == "index_not_found":
+            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+        else:
+            raise e
+
+
+@app.command()
 def get_index(
     index: str = Argument(..., help="The name of the index to retrieve"),
     url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
