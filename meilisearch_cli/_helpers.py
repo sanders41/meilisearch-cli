@@ -13,10 +13,22 @@ def process_settings(
 ) -> None:
     update = settings_method()
     if wait:
-        status = wait_for_update(index, update["updateId"], console)
+        status = False
+
+        if not isinstance(update, list):
+            response = wait_for_update(index, update["updateId"], console)
+            if response:
+                status = True
+        else:
+            for u in update:
+                response = wait_for_update(index, u["updateId"], console)
+                if response:
+                    status = True
+
         if status:
             settings = retrieve_method()
             console.print(settings)
+
     else:
         console.print(update)
 

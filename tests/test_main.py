@@ -10,14 +10,28 @@ from requests import Response
 from meilisearch_cli.main import app
 
 
+def get_update_id_from_output(output):
+    output_json = json.loads(output.replace("'", '"'))
+    if not isinstance(output_json, list):
+        return output_json["updateId"]
+
+    return [x["updateId"] for x in output_json]
+    # return output.replace("\n", "").split(" ")[1][:-1]
+
+
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "'title': 'Pet Sematary'"), ("-w", "'title': 'Pet Sematary'")],
+    [(None, "updateId"), ("--wait", "'title':"), ("-w", "'title':")],
+)
+@pytest.mark.parametrize(
+    "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
 )
 @pytest.mark.parametrize("use_env", [True, False])
 def test_add_documents(
     use_env,
     wait_flag,
+    primary_key,
+    expected_primary_key,
     expected,
     index_uid,
     base_url,
@@ -25,8 +39,13 @@ def test_add_documents(
     test_runner,
     small_movies,
     monkeypatch,
+    client,
 ):
     args = ["add-documents", index_uid, json.dumps(small_movies)]
+
+    if primary_key:
+        args.append("--primary-key")
+        args.append(primary_key)
 
     if wait_flag:
         args.append(wait_flag)
@@ -42,6 +61,11 @@ def test_add_documents(
 
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
+
+    if not wait_flag:
+        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+
+    assert client.index(index_uid).get_primary_key() == expected_primary_key
     assert expected in out
 
 
@@ -70,6 +94,99 @@ def test_add_documents_json_error(
     test_runner,
 ):
     args = ["add-documents", index_uid, "test"]
+
+    runner_result = test_runner.invoke(app, args)
+
+    out = runner_result.stdout
+    assert "Unable to parse" in out
+
+
+@pytest.mark.parametrize(
+    "wait_flag, expected",
+    [(None, "updateId"), ("--wait", "'title':"), ("-w", "'title':")],
+)
+@pytest.mark.parametrize(
+    "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
+)
+@pytest.mark.parametrize("batch_size", [None, 10, 1000])
+@pytest.mark.parametrize("use_env", [True, False])
+def test_add_documents_in_batches(
+    use_env,
+    wait_flag,
+    primary_key,
+    expected_primary_key,
+    batch_size,
+    expected,
+    index_uid,
+    base_url,
+    master_key,
+    test_runner,
+    small_movies,
+    monkeypatch,
+    client,
+):
+    args = ["add-documents-in-batches", index_uid, json.dumps(small_movies)]
+
+    if batch_size:
+        args.append("--batch-size")
+        args.append(str(batch_size))
+
+    if primary_key:
+        args.append("--primary-key")
+        args.append(primary_key)
+
+    if wait_flag:
+        args.append(wait_flag)
+
+    if use_env:
+        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
+        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
+    else:
+        args.append("--url")
+        args.append(base_url)
+        args.append("--master-key")
+        args.append(master_key)
+
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+    out = runner_result.stdout
+
+    if not wait_flag:
+        for update_id in get_update_id_from_output(out):
+            client.index(index_uid).wait_for_pending_update(update_id)
+
+    assert client.index(index_uid).get_primary_key() == expected_primary_key
+    assert expected in out
+
+
+@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
+@pytest.mark.usefixtures("env_vars")
+def test_get_add_documents_in_batches_no_url_master_key(
+    remove_env, index_uid, test_runner, monkeypatch
+):
+    if remove_env == "all":
+        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
+        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
+    else:
+        monkeypatch.delenv(remove_env, raising=False)
+
+    runner_result = test_runner.invoke(
+        app, ["add-documents-in-batches", index_uid, '{"test": "test"}']
+    )
+    out = runner_result.stdout
+
+    if remove_env == "all":
+        assert "MEILI_HTTP_ADDR" in out
+        assert "MEILI_MASTER_KEY" in out
+    else:
+        assert remove_env in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_add_documents_in_batches_json_error(
+    index_uid,
+    test_runner,
+):
+    args = ["add-documents-in-batches", index_uid, "test"]
 
     runner_result = test_runner.invoke(app, args)
 

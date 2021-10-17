@@ -25,6 +25,10 @@ WAIT_MESSAGE = "If this flag is set the function will wait for MeiliSearch to fi
 def add_documents(
     index: str = Argument(..., help="The name of the index from which to add the documents"),
     documents: str = Argument(..., help="A JSON string of documents"),
+    primary_key: str = Option(
+        None,
+        help="The primary key for the documents. Will be ignored if a primary key is already set",
+    ),
     url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
     master_key: Optional[str] = Option(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
@@ -40,7 +44,47 @@ def add_documents(
         with console.status("Adding documents..."):
             process_settings(
                 client_index,
-                partial(client_index.add_documents, json.loads(documents)),
+                partial(client_index.add_documents, json.loads(documents), primary_key),
+                client_index.get_documents,
+                wait,
+                console,
+            )
+    except json.decoder.JSONDecodeError:
+        console.print(f"Unable to parse {documents} as JSON", style="red")
+
+
+@app.command()
+def add_documents_in_batches(
+    index: str = Argument(..., help="The name of the index from which to add the documents"),
+    documents: str = Argument(..., help="A JSON string of documents"),
+    primary_key: str = Option(
+        None,
+        help="The primary key for the documents. Will be ignored if a primary key is already set",
+    ),
+    batch_size: int = Option(
+        1000, help="The number of documents that should be included in each batch."
+    ),
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+) -> None:
+    """Get add documents to an index."""
+
+    verify_url_and_master_key(console, url, master_key)
+
+    client_index = Client(url, master_key).index(index)
+    try:
+        with console.status("Adding documents..."):
+            process_settings(
+                client_index,
+                partial(
+                    client_index.add_documents_in_batches,
+                    json.loads(documents),
+                    batch_size,
+                    primary_key,
+                ),
                 client_index.get_documents,
                 wait,
                 console,
