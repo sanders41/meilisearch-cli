@@ -498,7 +498,7 @@ def test_get_stats_no_url_master_key(remove_env, index_uid, test_runner, monkeyp
 
 @pytest.mark.usefixtures("env_vars")
 def test_get_stats_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["get-settings", index_uid])
+    runner_result = test_runner.invoke(app, ["get-stats", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1215,6 +1215,142 @@ def test_reset_synonyms_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
         test_runner.invoke(app, ["reset-synonyms", index_uid], catch_exceptions=False)
+
+
+@pytest.mark.parametrize("use_env", [True, False])
+def test_search_basic(
+    use_env,
+    index_uid,
+    base_url,
+    master_key,
+    test_runner,
+    client,
+    small_movies,
+    monkeypatch,
+):
+    args = ["search", index_uid, "How to Train Your Dragon"]
+
+    if use_env:
+        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
+        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
+    else:
+        args.append("--url")
+        args.append(base_url)
+        args.append("--master-key")
+        args.append(master_key)
+
+    index = client.index(index_uid)
+    update = index.add_documents(small_movies)
+    index.wait_for_pending_update(update["updateId"])
+    runner_result = test_runner.invoke(app, args)
+
+    out = runner_result.stdout
+    assert "166428" in out
+
+
+@pytest.mark.parametrize("use_env", [True, False])
+def test_search_full(
+    use_env,
+    index_uid,
+    base_url,
+    master_key,
+    test_runner,
+    client,
+    small_movies,
+    monkeypatch,
+):
+    updated_settings = {
+        "filterableAttributes": ["genre"],
+        "sortableAttributes": ["title"],
+    }
+
+    index = client.index(index_uid)
+    index.update_settings(updated_settings)
+
+    args = [
+        "search",
+        index_uid,
+        "",
+        "--offset",
+        "1",
+        "--limit",
+        "10",
+        "--filter",
+        "genre = comedy",
+        "--facets-distribution",
+        "genre",
+        "--attributes-to-retrieve",
+        "title",
+        "--attributes-to-retrieve",
+        "discription",
+        "--attributes-to-crop",
+        "description",
+        "--crop-length",
+        "225",
+        "--attributes-to-hightlight",
+        "title",
+        "--matches",
+        "--sort",
+        "title:asc",
+    ]
+
+    if use_env:
+        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
+        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
+    else:
+        args.append("--url")
+        args.append(base_url)
+        args.append("--master-key")
+        args.append(master_key)
+
+    update = index.add_documents(small_movies)
+    index.wait_for_pending_update(update["updateId"])
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+
+    out = runner_result.stdout
+    assert "hits" in out
+    assert "nbHits" in out
+    assert "exhaustiveNbHits" in out
+    assert "query" in out
+    assert "limit" in out
+    assert "offset" in out
+    assert "processingTimeMs" in out
+    assert "facetsDistribution" in out
+    assert "exhaustiveFacetsCount" in out
+
+
+@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
+@pytest.mark.usefixtures("env_vars")
+def test_search_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
+    if remove_env == "all":
+        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
+        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
+    else:
+        monkeypatch.delenv(remove_env, raising=False)
+
+    runner_result = test_runner.invoke(app, ["search", index_uid, ""])
+    out = runner_result.stdout
+
+    if remove_env == "all":
+        assert "MEILI_HTTP_ADDR" in out
+        assert "MEILI_MASTER_KEY" in out
+    else:
+        assert remove_env in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_search_index_not_found_error(test_runner, index_uid):
+    runner_result = test_runner.invoke(app, ["search", index_uid, ""])
+    out = runner_result.stdout
+    assert "not found" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+@patch.object(Index, "search")
+def test_search_error(mock_get, test_runner, index_uid):
+    mock_get.side_effect = MeiliSearchApiError("bad", Response())
+    with pytest.raises(MeiliSearchApiError):
+        test_runner.invoke(app, ["search", index_uid, ""], catch_exceptions=False)
 
 
 @pytest.mark.parametrize(

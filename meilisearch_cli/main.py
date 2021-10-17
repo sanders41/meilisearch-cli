@@ -561,6 +561,90 @@ def reset_synonyms(
 
 
 @app.command()
+def search(
+    index: str = Argument(..., help="The name of the index from which to retrieve the settings"),
+    query: str = Argument(..., help="The query string"),
+    offset: Optional[int] = Option(None, help="The number of documents to skip"),
+    limit: Optional[int] = Option(None, help="The maximum number of documents to return"),
+    filter: Optional[List[str]] = Option(None, help="Filter queries by an attribute value"),
+    facets_distribution: Optional[List[str]] = Option(
+        None, help="Facets for which to retrieve the matching count"
+    ),
+    attributes_to_retrieve: Optional[List[str]] = Option(
+        None, help="Attributes to display in the returned documents"
+    ),
+    attributes_to_crop: Optional[List[str]] = Option(
+        None, help="Attributes whose values have to be cropped"
+    ),
+    crop_length: Optional[int] = Option(None, help="Length used to crop field values"),
+    attributes_to_hightlight: Optional[List[str]] = Option(
+        None, help="Attributes whose values will contain highlighted matching terms"
+    ),
+    matches: bool = Option(
+        False,
+        help="Defines whether an object that contains information about the matches should be returned or not",
+    ),
+    sort: Optional[List[str]] = Option(
+        None, help="Sort search results according to the attributes"
+    ),
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+) -> None:
+    """Perform a search."""
+
+    verify_url_and_master_key(console, url, master_key)
+
+    client = Client(url, master_key)
+    search_params: dict[str, Any] = {}
+
+    if offset:
+        search_params["offset"] = offset
+
+    if limit:
+        search_params["limit"] = limit
+
+    if filter:
+        search_params["filter"] = filter
+
+    if facets_distribution:
+        search_params["facetsDistribution"] = facets_distribution
+
+    if attributes_to_retrieve:
+        search_params["attributesToRetrieve"] = attributes_to_retrieve
+
+    if attributes_to_crop:
+        search_params["attributesToCrop"] = attributes_to_crop
+
+    if crop_length:
+        search_params["cropLength"] = crop_length
+
+    if attributes_to_hightlight:
+        search_params["attributesToHighlight"] = attributes_to_hightlight
+
+    if matches:
+        search_params["matches"] = matches
+
+    if sort:
+        search_params["sort"] = sort
+
+    try:
+        with console.status("Searching..."):
+            if search_params:
+                search_results = client.index(index).search(query, search_params)
+            else:
+                search_results = client.index(index).search(query)
+
+        console.print(search_results)
+    except MeiliSearchApiError as e:
+        if e.error_code == "index_not_found":
+            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+        else:
+            raise e
+
+
+@app.command()
 def update_displayed_attributes(
     index: str = Argument(
         ..., help="The name of the index for which to update the diplayed attributes"
