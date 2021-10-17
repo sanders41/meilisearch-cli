@@ -8,10 +8,10 @@ from meilisearch.index import Index
 from rich.console import Console
 
 
-def process_settings(
-    index: Index, settings_method: Callable, retrieve_method: Callable, wait: bool, console: Console
+def process_request(
+    index: Index, request_method: Callable, retrieve_method: Callable, wait: bool, console: Console
 ) -> None:
-    update = settings_method()
+    update = request_method()
     if wait:
         status = False
 
@@ -26,8 +26,8 @@ def process_settings(
                     status = True
 
         if status:
-            settings = retrieve_method()
-            console.print(settings)
+            response = retrieve_method()
+            console.print(response)
 
     else:
         console.print(update)

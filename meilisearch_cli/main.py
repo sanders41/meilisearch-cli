@@ -10,7 +10,7 @@ from meilisearch.errors import MeiliSearchApiError
 from rich.console import Console
 from typer import Argument, Option, Typer
 
-from meilisearch_cli._helpers import process_settings, verify_url_and_master_key
+from meilisearch_cli._helpers import process_request, verify_url_and_master_key
 
 console = Console()
 app = Typer()
@@ -42,7 +42,7 @@ def add_documents(
     client_index = Client(url, master_key).index(index)
     try:
         with console.status("Adding documents..."):
-            process_settings(
+            process_request(
                 client_index,
                 partial(client_index.add_documents, json.loads(documents), primary_key),
                 client_index.get_documents,
@@ -77,7 +77,7 @@ def add_documents_in_batches(
     client_index = Client(url, master_key).index(index)
     try:
         with console.status("Adding documents..."):
-            process_settings(
+            process_request(
                 client_index,
                 partial(
                     client_index.add_documents_in_batches,
@@ -453,7 +453,7 @@ def reset_displayed_attributes(
     client_index = Client(url, master_key).index(index)
     try:
         with console.status("Resetting displayed attributes..."):
-            process_settings(
+            process_request(
                 client_index,
                 client_index.reset_displayed_attributes,
                 client_index.get_displayed_attributes,
@@ -485,7 +485,7 @@ def reset_distinct_attribute(
     client_index = Client(url, master_key).index(index)
     try:
         with console.status("Resetting distinct attribute..."):
-            process_settings(
+            process_request(
                 client_index,
                 client_index.reset_distinct_attribute,
                 client_index.get_distinct_attribute,
@@ -517,7 +517,7 @@ def reset_filterable_attributes(
     client_index = Client(url, master_key).index(index)
     try:
         with console.status("Resetting filterable attributes..."):
-            process_settings(
+            process_request(
                 client_index,
                 client_index.reset_filterable_attributes,
                 client_index.get_filterable_attributes,
@@ -547,7 +547,7 @@ def reset_ranking_rules(
     client_index = Client(url, master_key).index(index)
     try:
         with console.status("Resetting ranking rules..."):
-            process_settings(
+            process_request(
                 client_index,
                 client_index.reset_ranking_rules,
                 client_index.get_ranking_rules,
@@ -579,7 +579,7 @@ def reset_searchable_attributes(
     client_index = Client(url, master_key).index(index)
     try:
         with console.status("Resetting searchable attributes..."):
-            process_settings(
+            process_request(
                 client_index,
                 client_index.reset_searchable_attributes,
                 client_index.get_searchable_attributes,
@@ -609,7 +609,7 @@ def reset_settings(
     client_index = Client(url, master_key).index(index)
     try:
         with console.status("Resetting settings..."):
-            process_settings(
+            process_request(
                 client_index,
                 client_index.reset_settings,
                 client_index.get_settings,
@@ -639,7 +639,7 @@ def reset_stop_words(
     client_index = Client(url, master_key).index(index)
     try:
         with console.status("Resetting stop words..."):
-            process_settings(
+            process_request(
                 client_index,
                 client_index.reset_stop_words,
                 client_index.get_stop_words,
@@ -669,7 +669,7 @@ def reset_synonyms(
     client_index = Client(url, master_key).index(index)
     try:
         with console.status("Resetting synonyms..."):
-            process_settings(
+            process_request(
                 client_index,
                 client_index.reset_synonyms,
                 client_index.get_synonyms,
@@ -785,7 +785,7 @@ def update_displayed_attributes(
 
     client_index = Client(url, master_key).index(index)
     with console.status("Updating displayed attributes..."):
-        process_settings(
+        process_request(
             client_index,
             partial(client_index.update_displayed_attributes, displayed_attributes),
             client_index.get_displayed_attributes,
@@ -812,7 +812,7 @@ def update_distinct_attribute(
 
     client_index = Client(url, master_key).index(index)
     with console.status("Updating distinct attribute..."):
-        process_settings(
+        process_request(
             client_index,
             partial(client_index.update_distinct_attribute, distinct_attribute),
             client_index.get_distinct_attribute,
@@ -876,7 +876,7 @@ def update_ranking_rules(
 
     client_index = Client(url, master_key).index(index)
     with console.status("Updating ranking rules..."):
-        process_settings(
+        process_request(
             client_index,
             partial(client_index.update_ranking_rules, ranking_rules),
             client_index.get_ranking_rules,
@@ -903,7 +903,7 @@ def update_searchable_attributes(
 
     client_index = Client(url, master_key).index(index)
     with console.status("Updating searchable attributes..."):
-        process_settings(
+        process_request(
             client_index,
             partial(client_index.update_searchable_attributes, searchable_attributes),
             client_index.get_searchable_attributes,
@@ -962,7 +962,7 @@ def update_settings(
         if synonyms:
             settings["synonyms"] = json.loads(synonyms)
         with console.status("Updating settings..."):
-            process_settings(
+            process_request(
                 client_index,
                 partial(client_index.update_settings, settings),
                 client_index.get_settings,
@@ -991,7 +991,7 @@ def update_sortable_attributes(
 
     client_index = Client(url, master_key).index(index)
     with console.status("Updating sortable attributes..."):
-        process_settings(
+        process_request(
             client_index,
             partial(client_index.update_sortable_attributes, sortable_attributes),
             client_index.get_sortable_attributes,
@@ -1016,7 +1016,7 @@ def update_stop_words(
 
     client_index = Client(url, master_key).index(index)
     with console.status("Updating stop words..."):
-        process_settings(
+        process_request(
             client_index,
             partial(client_index.update_stop_words, stop_words),
             client_index.get_stop_words,
@@ -1044,7 +1044,7 @@ def update_synonyms(
     client_index = Client(url, master_key).index(index)
     try:
         with console.status("Updating searchable attributes..."):
-            process_settings(
+            process_request(
                 client_index,
                 partial(client_index.update_synonyms, json.loads(synonyms)),
                 client_index.get_synonyms,
