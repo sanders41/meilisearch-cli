@@ -459,6 +459,205 @@ def test_create_index_no_url_master_key(remove_env, index_uid, test_runner, monk
         assert remove_env in out
 
 
+@pytest.mark.parametrize(
+    "wait_flag, expected",
+    [(None, "updateId"), ("--wait", "[]"), ("-w", "[]")],
+)
+@pytest.mark.parametrize("use_env", [True, False])
+def test_delete_all_documents(
+    use_env,
+    wait_flag,
+    expected,
+    index_uid,
+    base_url,
+    master_key,
+    test_runner,
+    small_movies,
+    monkeypatch,
+    client,
+):
+    update = client.index(index_uid).add_documents(small_movies)
+    client.index(index_uid).wait_for_pending_update(update["updateId"])
+
+    args = ["delete-all-documents", index_uid]
+
+    if wait_flag:
+        args.append(wait_flag)
+
+    if use_env:
+        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
+        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
+    else:
+        args.append("--url")
+        args.append(base_url)
+        args.append("--master-key")
+        args.append(master_key)
+
+    runner_result = test_runner.invoke(app, args)
+    out = runner_result.stdout
+
+    if not wait_flag:
+        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+
+    assert client.index(index_uid).get_documents() == []
+    assert expected in out
+
+
+@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
+@pytest.mark.usefixtures("env_vars")
+def test_delete_all_documents_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
+    if remove_env == "all":
+        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
+        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
+    else:
+        monkeypatch.delenv(remove_env, raising=False)
+
+    runner_result = test_runner.invoke(app, ["delete-all-documents", index_uid])
+    out = runner_result.stdout
+
+    if remove_env == "all":
+        assert "MEILI_HTTP_ADDR" in out
+        assert "MEILI_MASTER_KEY" in out
+    else:
+        assert remove_env in out
+
+
+@pytest.mark.parametrize(
+    "wait_flag, expected",
+    [(None, "updateId"), ("--wait", "title"), ("-w", "title")],
+)
+@pytest.mark.parametrize("use_env", [True, False])
+def test_delete_document(
+    use_env,
+    wait_flag,
+    expected,
+    index_uid,
+    base_url,
+    master_key,
+    test_runner,
+    small_movies,
+    monkeypatch,
+    client,
+):
+    update = client.index(index_uid).add_documents(small_movies)
+    client.index(index_uid).wait_for_pending_update(update["updateId"])
+    documents = client.index(index_uid).get_documents()
+    document_id = documents[0]["id"]
+
+    args = ["delete-document", index_uid, document_id]
+
+    if wait_flag:
+        args.append(wait_flag)
+
+    if use_env:
+        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
+        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
+    else:
+        args.append("--url")
+        args.append(base_url)
+        args.append("--master-key")
+        args.append(master_key)
+
+    runner_result = test_runner.invoke(app, args)
+    out = runner_result.stdout
+
+    if not wait_flag:
+        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+
+    with pytest.raises(MeiliSearchApiError):
+        client.index(index_uid).get_document(document_id)
+
+    assert expected in out
+
+
+@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
+@pytest.mark.usefixtures("env_vars")
+def test_delete_document_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
+    if remove_env == "all":
+        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
+        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
+    else:
+        monkeypatch.delenv(remove_env, raising=False)
+
+    runner_result = test_runner.invoke(app, ["delete-document", index_uid, "1"])
+    out = runner_result.stdout
+
+    if remove_env == "all":
+        assert "MEILI_HTTP_ADDR" in out
+        assert "MEILI_MASTER_KEY" in out
+    else:
+        assert remove_env in out
+
+
+@pytest.mark.parametrize(
+    "wait_flag, expected",
+    [(None, "updateId"), ("--wait", "title"), ("-w", "title")],
+)
+@pytest.mark.parametrize("use_env", [True, False])
+def test_delete_documents(
+    use_env,
+    wait_flag,
+    expected,
+    index_uid,
+    base_url,
+    master_key,
+    test_runner,
+    small_movies,
+    monkeypatch,
+    client,
+):
+    update = client.index(index_uid).add_documents(small_movies)
+    client.index(index_uid).wait_for_pending_update(update["updateId"])
+    documents = client.index(index_uid).get_documents()
+    document_id_1 = documents[0]["id"]
+    document_id_2 = documents[1]["id"]
+
+    args = ["delete-documents", index_uid, document_id_1, document_id_2]
+
+    if wait_flag:
+        args.append(wait_flag)
+
+    if use_env:
+        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
+        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
+    else:
+        args.append("--url")
+        args.append(base_url)
+        args.append("--master-key")
+        args.append(master_key)
+
+    runner_result = test_runner.invoke(app, args)
+    out = runner_result.stdout
+
+    if not wait_flag:
+        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+
+    for document_id in [document_id_1, document_id_2]:
+        with pytest.raises(MeiliSearchApiError):
+            client.index(index_uid).get_document(document_id)
+
+    assert expected in out
+
+
+@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
+@pytest.mark.usefixtures("env_vars")
+def test_delete_documents_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
+    if remove_env == "all":
+        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
+        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
+    else:
+        monkeypatch.delenv(remove_env, raising=False)
+
+    runner_result = test_runner.invoke(app, ["delete-documents", index_uid, "1", "2"])
+    out = runner_result.stdout
+
+    if remove_env == "all":
+        assert "MEILI_HTTP_ADDR" in out
+        assert "MEILI_MASTER_KEY" in out
+    else:
+        assert remove_env in out
+
+
 @pytest.mark.parametrize("use_env", [True, False])
 def test_delete_index(use_env, base_url, master_key, test_runner, index_uid, monkeypatch, client):
     args = ["delete-index", index_uid]

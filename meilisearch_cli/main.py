@@ -192,6 +192,86 @@ def create_index(
 
 
 @app.command()
+def delete_all_documents(
+    index: str = Argument(..., help="The name of the index from which to delete the documents"),
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+) -> None:
+    """Delete all documents from an index."""
+
+    verify_url_and_master_key(console, url, master_key)
+
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
+    with console.status("Deleting all documents..."):
+        process_request(
+            client_index,
+            partial(client_index.delete_all_documents),
+            client_index.get_documents,
+            wait,
+            console,
+        )
+
+
+@app.command()
+def delete_document(
+    index: str = Argument(..., help="The name of the index from which to delete the document"),
+    document_id: str = Argument(..., help="The ID for the document to delete"),
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+) -> None:
+    """Delete a document from an index."""
+
+    verify_url_and_master_key(console, url, master_key)
+
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
+    with console.status("Deleting document..."):
+        process_request(
+            client_index,
+            partial(client_index.delete_document, document_id),
+            client_index.get_documents,
+            wait,
+            console,
+        )
+
+
+@app.command()
+def delete_documents(
+    index: str = Argument(..., help="The name of the index from which to delete the documents"),
+    document_ids: List[str] = Argument(..., help="The IDs for the documents to delete"),
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+) -> None:
+    """Delete multiple documents from an index."""
+
+    verify_url_and_master_key(console, url, master_key)
+
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client_index = Client(url, master_key).index(index)  # type: ignore
+    with console.status("Deleting documents..."):
+        process_request(
+            client_index,
+            partial(client_index.delete_documents, document_ids),
+            client_index.get_documents,
+            wait,
+            console,
+        )
+
+
+@app.command()
 def delete_index(
     index: str = Argument(..., help="The name of the index to delete"),
     url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
