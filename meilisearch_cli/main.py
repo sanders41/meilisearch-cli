@@ -154,6 +154,26 @@ def add_documents_in_batches(
 
 
 @app.command()
+def create_dump(
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+) -> None:
+    """Trigger the creation of a dump."""
+
+    verify_url_and_master_key(console, url, master_key)
+
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
+    with console.status("Creating dump..."):
+        response = client.create_dump()
+
+    console.print(response)
+
+
+@app.command()
 def create_index(
     index: str = Argument(..., help="The name of the index to create"),
     primary_key: Optional[str] = Option(None, help="The primary key of the index"),
@@ -381,6 +401,29 @@ def get_documents(
             console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
         else:
             raise e
+
+
+@app.command()
+def get_dump_status(
+    update_id: str = Argument(
+        ..., help="The update ID of the dump creation for which to get the status"
+    ),
+    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    master_key: Optional[str] = Option(
+        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
+    ),
+) -> None:
+    """Gets the status of a dump creation."""
+
+    verify_url_and_master_key(console, url, master_key)
+
+    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
+    # already verified they aren't None so ignore the MyPy warning
+    client = Client(url, master_key)  # type: ignore
+    with console.status("Getting dump status..."):
+        response = client.get_dump_status(update_id)
+
+    console.print(response)
 
 
 @app.command()
