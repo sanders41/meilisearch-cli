@@ -387,6 +387,45 @@ def test_add_documents_in_batches_json_error(
     assert "Unable to parse" in out
 
 
+@pytest.mark.parametrize("use_env", [True, False])
+def test_create_dump(use_env, test_runner, base_url, master_key, monkeypatch):
+    args = ["create-dump"]
+
+    if use_env:
+        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
+        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
+    else:
+        args.append("--url")
+        args.append(base_url)
+        args.append("--master-key")
+        args.append(master_key)
+
+    runner_result = test_runner.invoke(app, args)
+    out = runner_result.stdout
+
+    assert "'uid':" in out
+    assert "'status':" in out
+
+
+@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
+@pytest.mark.usefixtures("env_vars")
+def test_create_dump_no_url_master_key(remove_env, test_runner, monkeypatch):
+    if remove_env == "all":
+        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
+        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
+    else:
+        monkeypatch.delenv(remove_env, raising=False)
+
+    runner_result = test_runner.invoke(app, ["create-dump"])
+    out = runner_result.stdout
+
+    if remove_env == "all":
+        assert "MEILI_HTTP_ADDR" in out
+        assert "MEILI_MASTER_KEY" in out
+    else:
+        assert remove_env in out
+
+
 @pytest.mark.parametrize("primary_key", [None, "alt_id"])
 @pytest.mark.parametrize("use_env", [True, False])
 def test_create_index(
@@ -894,6 +933,46 @@ def test_get_documents_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
         test_runner.invoke(app, ["get-documents", index_uid], catch_exceptions=False)
+
+
+@pytest.mark.parametrize("use_env", [True, False])
+def test_get_dump_status(use_env, test_runner, base_url, master_key, client, monkeypatch):
+    response = client.create_dump()
+    args = ["get-dump-status", response["uid"]]
+
+    if use_env:
+        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
+        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
+    else:
+        args.append("--url")
+        args.append(base_url)
+        args.append("--master-key")
+        args.append(master_key)
+
+    runner_result = test_runner.invoke(app, args)
+    out = runner_result.stdout
+
+    assert "'uid':" in out
+    assert "'status':" in out
+
+
+@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
+@pytest.mark.usefixtures("env_vars")
+def test_get_dump_status_no_url_master_key(remove_env, test_runner, monkeypatch):
+    if remove_env == "all":
+        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
+        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
+    else:
+        monkeypatch.delenv(remove_env, raising=False)
+
+    runner_result = test_runner.invoke(app, ["get-dump-status", "1234-5678"])
+    out = runner_result.stdout
+
+    if remove_env == "all":
+        assert "MEILI_HTTP_ADDR" in out
+        assert "MEILI_MASTER_KEY" in out
+    else:
+        assert remove_env in out
 
 
 @pytest.mark.parametrize("use_env", [True, False])
