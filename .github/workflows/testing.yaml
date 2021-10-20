@@ -92,7 +92,7 @@ jobs:
       run: poetry install
     - name: Install and run MeiliSearch
       run: |
-        curl -L https://install.meilisearch.com | sh
+        curl -L https://install.meilisearch.com | bash
         ./meilisearch --master-key=masterKey --no-analytics=true
     - name: Test with pytest
       run: |
