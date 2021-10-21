@@ -11,12 +11,13 @@ from meilisearch.errors import MeiliSearchApiError
 from rich.console import Console
 from typer import Argument, Option, Typer
 
-from meilisearch_cli._helpers import process_request, verify_url_and_master_key
+from meilisearch_cli._helpers import create_panel, process_request, verify_url_and_master_key
 
 console = Console()
 app = Typer()
 
 
+PANEL_BORDER_COLOR = "sky_blue2"
 URL_HELP_MESSAGE = "The url to the MeiliSearch instance"
 MASTER_KEY_HELP_MESSAGE = "The master key for the MeiliSearch instance"
 WAIT_MESSAGE = "If this flag is set the function will wait for MeiliSearch to finish processing the data and return the results. Otherwise the update ID will be returned immediately"
@@ -51,6 +52,7 @@ def add_documents(
                 client_index.get_documents,
                 wait,
                 console,
+                "Add Documents Result",
             )
     except json.decoder.JSONDecodeError:
         console.print(f"Unable to parse {documents} as JSON", style="red")
@@ -81,7 +83,7 @@ def add_documents_from_file(
 
     if file_type not in (".json", ".csv", ".ndjson"):
         console.print(
-            f"[yellow]{file_type}[/yellow] files are not accepted. Only .json, .csv, and .ndjson are accepted",
+            f"[yellow bold]{file_type}[/yellow bold] files are not accepted. Only .json, .csv, and .ndjson are accepted",
             style="red",
         )
         sys.exit()
@@ -108,6 +110,7 @@ def add_documents_from_file(
             client_index.get_documents,
             wait,
             console,
+            "Add Documents Result",
         )
 
 
@@ -148,6 +151,7 @@ def add_documents_in_batches(
                 client_index.get_documents,
                 wait,
                 console,
+                "Add Documents Result",
             )
     except json.decoder.JSONDecodeError:
         console.print(f"Unable to parse {documents} as JSON", style="red")
@@ -169,8 +173,9 @@ def create_dump(
     client = Client(url, master_key)  # type: ignore
     with console.status("Creating dump..."):
         response = client.create_dump()
+        panel = create_panel(response, title="Dump")
 
-    console.print(response)
+    console.print(panel)
 
 
 @app.command()
@@ -196,17 +201,15 @@ def create_index(
             else:
                 response = client.create_index(index)
 
-        index_display = {
-            "uid": response.uid,
-            "primary_key": response.primary_key,
-            "created_at": response.created_at,
-            "updated_at": response.updated_at,
-        }
+        index_dict = response.__dict__
+        del index_dict["config"]
+        del index_dict["http"]
+        panel = create_panel(index_dict, title="Index")
 
-        console.print(index_display)
+        console.print(panel)
     except MeiliSearchApiError as e:
         if e.error_code == "index_already_exists":
-            console.print(f"Index [yellow]{index}[/yellow] already exists", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] already exists", style="red")
         else:
             raise
 
@@ -234,6 +237,7 @@ def delete_all_documents(
             client_index.get_documents,
             wait,
             console,
+            "Delete Documents Result",
         )
 
 
@@ -261,6 +265,7 @@ def delete_document(
             client_index.get_documents,
             wait,
             console,
+            "Delete Document Result",
         )
 
 
@@ -288,6 +293,7 @@ def delete_documents(
             client_index.get_documents,
             wait,
             console,
+            "Delete Documents Result",
         )
 
 
@@ -311,10 +317,15 @@ def delete_index(
             response = client.index(index).delete()
 
         response.raise_for_status()
-        console.print(f"Index {index} successfully deleted", style="green")
+        console.print(
+            create_panel(
+                f"Index {index} successfully deleted",
+                title="Delete Index",
+            )
+        )
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
 
@@ -339,11 +350,12 @@ def get_all_update_status(
     try:
         with console.status("Getting update status..."):
             status = client.index(index).get_all_update_status()
+            panel = create_panel(status, title="Update Status")
 
-        console.print(status)
+        console.print(panel)
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
 
@@ -366,12 +378,13 @@ def get_document(
     client = Client(url, master_key)  # type: ignore
     try:
         with console.status("Getting document..."):
-            status = client.index(index).get_document(document_id)
+            document = client.index(index).get_document(document_id)
+            panel = create_panel(document, title="Document")
 
-        console.print(status)
+        console.print(panel)
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
 
@@ -394,11 +407,12 @@ def get_documents(
     try:
         with console.status("Getting documents..."):
             status = client.index(index).get_documents()
+            panel = create_panel(status, title="Documents")
 
-        console.print(status)
+        console.print(panel)
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
 
@@ -422,8 +436,9 @@ def get_dump_status(
     client = Client(url, master_key)  # type: ignore
     with console.status("Getting dump status..."):
         response = client.get_dump_status(update_id)
+        panel = create_panel(response, title="Dump Status")
 
-    console.print(response)
+    console.print(panel)
 
 
 @app.command()
@@ -444,8 +459,9 @@ def get_index(
     try:
         with console.status("Getting index..."):
             returned_index = client.get_raw_index(index)
+            panel = create_panel(returned_index, title="Index")
 
-        console.print(returned_index)
+        console.print(panel)
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
             console.print(e.message, style="red")
@@ -469,8 +485,9 @@ def get_indexes(
     client = Client(url, master_key)  # type: ignore
     with console.status("Getting indexes..."):
         indexes = client.get_raw_indexes()
+        panel = create_panel(indexes, title="All Indexes")
 
-    console.print(indexes)
+    console.print(panel)
 
 
 @app.command()
@@ -489,8 +506,9 @@ def get_keys(
     client = Client(url, master_key)  # type: ignore
     with console.status("Getting keys..."):
         keys = client.get_keys()
+        panel = create_panel(keys, title="Keys")
 
-    console.print(keys)
+    console.print(panel)
 
 
 @app.command()
@@ -511,11 +529,12 @@ def get_primary_key(
     try:
         with console.status("Getting primary key..."):
             primary_key = client.index(index).get_primary_key()
+            panel = create_panel(primary_key, title="Primary Key")
 
-        console.print(primary_key)
+        console.print(panel)
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
 
@@ -538,11 +557,12 @@ def get_settings(
     try:
         with console.status("Getting settings..."):
             settings = client.index(index).get_settings()
+            panel = create_panel(settings, title="Settings")
 
-        console.print(settings)
+        console.print(panel)
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
 
@@ -565,11 +585,12 @@ def get_stats(
     try:
         with console.status("Getting stats..."):
             settings = client.index(index).get_stats()
+            panel = create_panel(settings, title="Stats")
 
-        console.print(settings)
+        console.print(panel)
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
 
@@ -595,11 +616,12 @@ def get_update_status(
     try:
         with console.status("Getting update status..."):
             status = client.index(index).get_update_status(update_id)
+            panel = create_panel(status, title="Update Status")
 
-        console.print(status)
+        console.print(panel)
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
 
@@ -620,8 +642,9 @@ def get_version(
     client = Client(url, master_key)  # type: ignore
     with console.status("Getting version..."):
         version = client.get_version()
+        panel = create_panel(version, title="Version Information")
 
-    console.print(version)
+    console.print(panel)
 
 
 @app.command()
@@ -632,7 +655,7 @@ def health(
 
     if not url:
         console.print(
-            "A value for [yellow]--url[/yellow] has to either be provied or available in the [yellow]MEILI_HTTP_ADDR[/yellow] environment variable",
+            "A value for [yellow bold]--url[/yellow bold] has to either be provied or available in the [yellow bold]MEILI_HTTP_ADDR[/yellow bold] environment variable",
             style="red",
         )
         sys.exit()
@@ -640,8 +663,9 @@ def health(
     client = Client(url)
     with console.status("Getting server status..."):
         health = client.health()
+        panel = create_panel(health, title="Server Health")
 
-    console.print(health)
+    console.print(panel)
 
 
 @app.command()
@@ -670,10 +694,11 @@ def reset_displayed_attributes(
                 client_index.get_displayed_attributes,
                 wait,
                 console,
+                "Reset Displayed Attributes",
             )
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
 
@@ -704,10 +729,11 @@ def reset_distinct_attribute(
                 client_index.get_distinct_attribute,
                 wait,
                 console,
+                "Reset Distinct Attribute",
             )
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
 
@@ -738,10 +764,11 @@ def reset_filterable_attributes(
                 client_index.get_filterable_attributes,
                 wait,
                 console,
+                "Reset Filterable Attributes",
             )
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
 
@@ -770,10 +797,11 @@ def reset_ranking_rules(
                 client_index.get_ranking_rules,
                 wait,
                 console,
+                "Reset Ranking Rules",
             )
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
 
@@ -804,10 +832,11 @@ def reset_searchable_attributes(
                 client_index.get_searchable_attributes,
                 wait,
                 console,
+                "Reset Searchable Attributes",
             )
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
 
@@ -836,10 +865,11 @@ def reset_settings(
                 client_index.get_settings,
                 wait,
                 console,
+                "Reset Settings",
             )
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
 
@@ -868,10 +898,11 @@ def reset_stop_words(
                 client_index.get_stop_words,
                 wait,
                 console,
+                "Reset Stop Words",
             )
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
 
@@ -900,10 +931,11 @@ def reset_synonyms(
                 client_index.get_synonyms,
                 wait,
                 console,
+                "Reset Synonyms",
             )
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
 
@@ -985,11 +1017,15 @@ def search(
                 search_results = client.index(index).search(query, search_params)
             else:
                 search_results = client.index(index).search(query)
-
-        console.print(search_results)
+            panel = create_panel(search_results, title="Search Results")
+        console.print(panel)
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(
+                f"Index [yellow bold]{index}[/yellow bold] not found",
+                style="red",
+            )
+
         else:
             raise e
 
@@ -1020,6 +1056,7 @@ def update_displayed_attributes(
             client_index.get_displayed_attributes,
             wait,
             console,
+            "Update Displayed Attributes",
         )
 
 
@@ -1049,6 +1086,7 @@ def update_distinct_attribute(
             client_index.get_distinct_attribute,
             wait,
             console,
+            "Update Distinct Attribute",
         )
 
 
@@ -1081,6 +1119,7 @@ def update_documents(
                 client_index.get_documents,
                 wait,
                 console,
+                "Update Documents",
             )
     except json.decoder.JSONDecodeError:
         console.print(f"Unable to parse {documents} as JSON", style="red")
@@ -1111,7 +1150,7 @@ def update_documents_from_file(
 
     if file_type not in (".json", ".csv", ".ndjson"):
         console.print(
-            f"[yellow]{file_type}[/yellow] files are not accepted. Only .json, .csv, and .ndjson are accepted",
+            f"[yellow bold]{file_type}[/yellow bold] files are not accepted. Only .json, .csv, and .ndjson are accepted",
             style="red",
         )
         sys.exit()
@@ -1138,6 +1177,7 @@ def update_documents_from_file(
             client_index.get_documents,
             wait,
             console,
+            "Update Documents",
         )
 
 
@@ -1178,6 +1218,7 @@ def update_documents_in_batches(
                 client_index.get_documents,
                 wait,
                 console,
+                "Update Documents",
             )
     except json.decoder.JSONDecodeError:
         console.print(f"Unable to parse {documents} as JSON", style="red")
@@ -1216,7 +1257,7 @@ def update_index(
         console.print(index_display)
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
-            console.print(f"Index [yellow]{index}[/yellow] not found", style="red")
+            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         elif e.error_code == "primary_key_already_present":
             console.print(
                 f"Index {index} already contains a primary key, cannot be reset", style="red"
@@ -1249,6 +1290,7 @@ def update_ranking_rules(
             client_index.get_ranking_rules,
             wait,
             console,
+            "Update Ranking Rules",
         )
 
 
@@ -1278,6 +1320,7 @@ def update_searchable_attributes(
             client_index.get_searchable_attributes,
             wait,
             console,
+            "Update Searchable Attributes",
         )
 
 
@@ -1339,6 +1382,7 @@ def update_settings(
                 client_index.get_settings,
                 wait,
                 console,
+                "Update Settings",
             )
     except json.decoder.JSONDecodeError:
         console.print(f"Unable to parse {synonyms} as JSON", style="red")
@@ -1370,6 +1414,7 @@ def update_sortable_attributes(
             client_index.get_sortable_attributes,
             wait,
             console,
+            "Update Searchable Attributes",
         )
 
 
@@ -1397,6 +1442,7 @@ def update_stop_words(
             client_index.get_stop_words,
             wait,
             console,
+            "Update Stop Words",
         )
 
 
@@ -1427,6 +1473,7 @@ def update_synonyms(
                 client_index.get_synonyms,
                 wait,
                 console,
+                "Update Synonyms",
             )
     except json.decoder.JSONDecodeError:
         console.print(f"Unable to parse {synonyms} as JSON", style="red")
