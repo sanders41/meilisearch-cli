@@ -6,10 +6,47 @@ from typing import Any, Callable
 
 from meilisearch.index import Index
 from rich.console import Console
+from rich.panel import Panel
+from rich.pretty import Pretty
+
+
+def create_panel(
+    data: dict[str, Any] | list[dict[str, Any]] | str | None,
+    *,
+    title: str,
+    panel_border_color: str = "sky_blue2",
+    padding: tuple[int, int] = (1, 1),
+    fit: bool = True,
+) -> Panel:
+    info: Any
+    if isinstance(data, str):
+        info = data
+    elif isinstance(data, list):
+        info = Pretty(data) if data is not None else ""
+    else:
+        info = ""
+        if data == {}:
+            info = "{}"
+        elif data is not None:
+            for key, value in data.items():
+                if info == "":
+                    info = f"[green]{key}[/green]: {value}"
+                else:
+                    info = f"{info}\n[green]{key}[/green]: {value}"
+
+    if fit:
+        return Panel.fit(info, title=title, border_style=panel_border_color, padding=padding)
+
+    return Panel(info, title=title, border_style=panel_border_color, padding=padding)
 
 
 def process_request(
-    index: Index, request_method: Callable, retrieve_method: Callable, wait: bool, console: Console
+    index: Index,
+    request_method: Callable,
+    retrieve_method: Callable,
+    wait: bool,
+    console: Console,
+    title: str,
 ) -> None:
     update = request_method()
     if wait:
@@ -27,10 +64,11 @@ def process_request(
 
         if status:
             response = retrieve_method()
-            console.print(response)
-
+            panel = create_panel(response, title=title)
     else:
-        console.print(update)
+        panel = create_panel(update, title=title)
+
+    console.print(panel)
 
 
 def verify_url_and_master_key(

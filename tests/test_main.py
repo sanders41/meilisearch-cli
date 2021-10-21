@@ -1,4 +1,5 @@
 import json
+import re
 from unittest.mock import patch
 
 import pytest
@@ -11,11 +12,11 @@ from meilisearch_cli.main import app
 
 
 def get_update_id_from_output(output):
-    output_json = json.loads(output.replace("'", '"'))
-    if not isinstance(output_json, list):
-        return output_json["updateId"]
+    if "[" in output:
+        update_ids = re.findall(r"{.*?}+", output)
+        return [json.loads(x.replace("'", '"'))["updateId"] for x in update_ids]
 
-    return [x["updateId"] for x in output_json]
+    return re.search(r"\d+", output).group()
 
 
 @pytest.mark.parametrize(
@@ -403,8 +404,8 @@ def test_create_dump(use_env, test_runner, base_url, master_key, monkeypatch):
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
-    assert "'uid':" in out
-    assert "'status':" in out
+    assert "uid" in out
+    assert "status" in out
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
@@ -453,12 +454,12 @@ def test_create_index(
 
     out = runner_result.stdout
 
-    assert f"'uid': '{index_uid}'" in out
+    assert f"uid: {index_uid}" in out
 
     if primary_key:
-        assert f"'primary_key': '{primary_key}'" in out
+        assert f"primary_key: {primary_key}" in out
     else:
-        assert "'primary_key': None" in out
+        assert "primary_key: None" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -837,9 +838,9 @@ def test_get_document(
         args.append("--master-key")
         args.append(master_key)
 
-    runner_result = test_runner.invoke(app, args)
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
     out = runner_result.stdout
-    assert "'title': 'Pet Sematary'" in out
+    assert "title: Pet Sematary" in out
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
@@ -952,8 +953,8 @@ def test_get_dump_status(use_env, test_runner, base_url, master_key, client, mon
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
-    assert "'uid':" in out
-    assert "'status':" in out
+    assert "uid:" in out
+    assert "status:" in out
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
@@ -992,7 +993,7 @@ def test_get_index(use_env, base_url, master_key, test_runner, index_uid, monkey
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
-    assert f"'uid': '{index_uid}'" in out
+    assert f"uid: {index_uid}" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -1088,8 +1089,8 @@ def test_get_keys(use_env, base_url, master_key, test_runner, monkeypatch):
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
-    assert "'public':" in out
-    assert "'private':" in out
+    assert "public:" in out
+    assert "private:" in out
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
@@ -1360,9 +1361,9 @@ def test_get_version(use_env, base_url, master_key, test_runner, monkeypatch):
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
-    assert "'commitSha':" in out
-    assert "'commitDate':" in out
-    assert "'pkgVersion':" in out
+    assert "commitSha" in out
+    assert "commitDate" in out
+    assert "pkgVersion" in out
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
@@ -1398,7 +1399,7 @@ def test_health(use_env, base_url, master_key, test_runner, monkeypatch):
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
-    assert "{'status': 'available'}" in out
+    assert "status: available" in out
 
 
 def test_health_no_url(test_runner):
@@ -1494,9 +1495,7 @@ def test_reset_displayed_attributes_error(mock_get, test_runner, index_uid):
         test_runner.invoke(app, ["reset-displayed-attributes", index_uid], catch_exceptions=False)
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected", [(None, "updateId"), ("--wait", "None"), ("-w", "None")]
-)
+@pytest.mark.parametrize("wait_flag, expected", [(None, "updateId"), ("--wait", ""), ("-w", "")])
 @pytest.mark.parametrize("use_env", [True, False])
 def test_reset_distinct_attribute(
     use_env, wait_flag, expected, index_uid, base_url, master_key, test_runner, client, monkeypatch
@@ -1808,17 +1807,17 @@ def test_reset_settings(
 
     out = runner_result.stdout
     if wait_flag:
-        assert "'displayedAttributes': ['*']" in out
-        assert "'searchableAttributes': ['*']" in out
-        assert "'filterableAttributes': []" in out
-        assert "'sortableAttributes': []" in out
+        assert "displayedAttributes: ['*']" in out
+        assert "searchableAttributes: ['*']" in out
+        assert "filterableAttributes: []" in out
+        assert "sortableAttributes: []" in out
         assert (
-            "'rankingRules': [\n        'words',\n        'typo',\n        'proximity',\n        'attribute',\n        'sort',\n        'exactness'"
+            "rankingRules: ['words', 'typo', 'proximity', 'attribute', 'sort',            │\n│ 'exactness']"
             in out
         )
-        assert "'stopWords': []" in out
-        assert "'synonyms': {}" in out
-        assert "'distinctAttribute': None" in out
+        assert "stopWords: []" in out
+        assert "synonyms: {}" in out
+        assert "distinctAttribute: None" in out
     else:
         assert "updateId" in out
 
@@ -1949,7 +1948,7 @@ def test_reset_synonyms(
     index.wait_for_pending_update(update["updateId"])
 
     assert index.get_synonyms() == {"logan": ["marval", "wolverine"]}
-    runner_result = test_runner.invoke(app, args)
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
 
     out = runner_result.stdout
     assert expected in out
@@ -2702,9 +2701,10 @@ def test_update_ranking_rules(
 
     index = client.create_index(index_uid)
     runner_result = test_runner.invoke(app, args)
-    assert index.get_ranking_rules() == ["sort", "words"]
 
     out = runner_result.stdout
+
+    assert index.get_ranking_rules() == ["sort", "words"]
     assert expected in out
 
 
@@ -2864,14 +2864,14 @@ def test_update_settings(
 
     out = runner_result.stdout
     if wait_flag:
-        assert f"'displayedAttributes': {updated_settings['displayedAttributes']}" in out
-        assert f"'searchableAttributes': {updated_settings['searchableAttributes']}" in out
-        assert f"'filterableAttributes': {updated_settings['filterableAttributes']}" in out
-        assert f"'sortableAttributes': {updated_settings['sortableAttributes']}" in out
-        assert f"'rankingRules': {updated_settings['rankingRules']}" in out
-        assert f"'stopWords': {updated_settings['stopWords']}" in out
-        assert f"'synonyms': {updated_settings['synonyms']}" in out
-        assert f"'distinctAttribute': '{updated_settings['distinctAttribute']}'" in out
+        assert f"displayedAttributes: {updated_settings['displayedAttributes']}" in out
+        assert f"searchableAttributes: {updated_settings['searchableAttributes']}" in out
+        assert f"filterableAttributes: {updated_settings['filterableAttributes']}" in out
+        assert f"sortableAttributes: {updated_settings['sortableAttributes']}" in out
+        assert f"rankingRules: {updated_settings['rankingRules']}" in out
+        assert f"stopWords: {updated_settings['stopWords']}" in out
+        assert f"synonyms: {updated_settings['synonyms']}" in out
+        assert f"distinctAttribute: {updated_settings['distinctAttribute']}" in out
     else:
         assert "updateId" in out
 
@@ -3043,8 +3043,8 @@ def test_update_stop_words_no_url_master_key(remove_env, index_uid, test_runner,
     "wait_flag, expected",
     [
         (None, "updateId"),
-        ("--wait", "{'logan': ['marvel', 'wolverine']}"),
-        ("-w", "{'logan': ['marvel', 'wolverine']}"),
+        ("--wait", "logan: ['marvel', 'wolverine']"),
+        ("-w", "logan: ['marvel', 'wolverine']"),
     ],
 )
 @pytest.mark.parametrize("use_env", [True, False])
