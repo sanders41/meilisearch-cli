@@ -18,6 +18,7 @@ def create_panel(
     padding: tuple[int, int] = (1, 1),
     fit: bool = True,
 ) -> Panel:
+    info: Any
     if isinstance(data, str):
         info = data
     elif isinstance(data, list):
