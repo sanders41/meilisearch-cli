@@ -11,7 +11,12 @@ from meilisearch.errors import MeiliSearchApiError
 from rich.console import Console
 from typer import Argument, Option, Typer
 
-from meilisearch_cli._helpers import create_panel, process_request, verify_url_and_master_key
+from meilisearch_cli._helpers import (
+    create_panel,
+    print_json_parse_error_message,
+    process_request,
+    verify_url_and_master_key,
+)
 
 console = Console()
 app = Typer()
@@ -55,7 +60,7 @@ def add_documents(
                 "Add Documents Result",
             )
     except json.decoder.JSONDecodeError:
-        console.print(f"Unable to parse {documents} as JSON", style="red")
+        print_json_parse_error_message(console, documents)
 
 
 @app.command()
@@ -154,7 +159,7 @@ def add_documents_in_batches(
                 "Add Documents Result",
             )
     except json.decoder.JSONDecodeError:
-        console.print(f"Unable to parse {documents} as JSON", style="red")
+        print_json_parse_error_message(console, documents)
 
 
 @app.command()
@@ -1122,7 +1127,7 @@ def update_documents(
                 "Update Documents",
             )
     except json.decoder.JSONDecodeError:
-        console.print(f"Unable to parse {documents} as JSON", style="red")
+        print_json_parse_error_message(console, documents)
 
 
 @app.command()
@@ -1221,7 +1226,7 @@ def update_documents_in_batches(
                 "Update Documents",
             )
     except json.decoder.JSONDecodeError:
-        console.print(f"Unable to parse {documents} as JSON", style="red")
+        print_json_parse_error_message(console, documents)
 
 
 @app.command()
@@ -1385,7 +1390,7 @@ def update_settings(
                 "Update Settings",
             )
     except json.decoder.JSONDecodeError:
-        console.print(f"Unable to parse {synonyms} as JSON", style="red")
+        print_json_parse_error_message(console, synonyms)
 
 
 @app.command()
@@ -1476,7 +1481,7 @@ def update_synonyms(
                 "Update Synonyms",
             )
     except json.decoder.JSONDecodeError:
-        console.print(f"Unable to parse {synonyms} as JSON", style="red")
+        print_json_parse_error_message(console, synonyms)
 
 
 if __name__ == "__main__":
