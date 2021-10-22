@@ -40,6 +40,10 @@ def create_panel(
     return Panel(info, title=title, border_style=panel_border_color, padding=padding)
 
 
+def print_json_parse_error_message(console: Console, json_str: str) -> None:
+    console.print(f"Unable to parse [yellow bold]{json_str}[/yellow bold] as JSON", style="red")
+
+
 def process_request(
     index: Index,
     request_method: Callable,
