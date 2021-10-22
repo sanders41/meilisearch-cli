@@ -15,6 +15,8 @@ from meilisearch_cli._helpers import (
     create_panel,
     print_json_parse_error_message,
     process_request,
+    set_search_param,
+    validate_file_type_and_set_content_type,
     verify_url_and_master_key,
 )
 
@@ -84,27 +86,12 @@ def add_documents_from_file(
 ) -> None:
     """Add documents to an index from a file."""
 
-    file_type = file_path.suffix
-
-    if file_type not in (".json", ".csv", ".ndjson"):
-        console.print(
-            f"[yellow bold]{file_type}[/yellow bold] files are not accepted. Only .json, .csv, and .ndjson are accepted",
-            style="red",
-        )
-        sys.exit()
-
     verify_url_and_master_key(console, url, master_key)
+    content_type = validate_file_type_and_set_content_type(console, file_path)
 
     with console.status("Adding documents..."):
         with open(file_path, "r") as f:
             documents = f.read().encode(encoding)
-
-        if file_type == ".csv":
-            content_type = "text/csv"
-        elif file_type == ".json":
-            content_type = "application/json"
-        elif file_type == ".ndjson":
-            content_type = "application/x-ndjson"
 
         # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
         # already verified they aren't None so ignore the MyPy warning
@@ -986,35 +973,16 @@ def search(
     client = Client(url, master_key)  # type: ignore
     search_params: dict[str, Any] = {}
 
-    if offset:
-        search_params["offset"] = offset
-
-    if limit:
-        search_params["limit"] = limit
-
-    if filter:
-        search_params["filter"] = filter
-
-    if facets_distribution:
-        search_params["facetsDistribution"] = facets_distribution
-
-    if attributes_to_retrieve:
-        search_params["attributesToRetrieve"] = attributes_to_retrieve
-
-    if attributes_to_crop:
-        search_params["attributesToCrop"] = attributes_to_crop
-
-    if crop_length:
-        search_params["cropLength"] = crop_length
-
-    if attributes_to_hightlight:
-        search_params["attributesToHighlight"] = attributes_to_hightlight
-
-    if matches:
-        search_params["matches"] = matches
-
-    if sort:
-        search_params["sort"] = sort
+    set_search_param(search_params, offset, "offset")
+    set_search_param(search_params, limit, "limit")
+    set_search_param(search_params, filter, "filter")
+    set_search_param(search_params, facets_distribution, "facetsDistribution")
+    set_search_param(search_params, attributes_to_retrieve, "attributesToRetrieve")
+    set_search_param(search_params, attributes_to_crop, "attributesToCrop")
+    set_search_param(search_params, crop_length, "cropLength")
+    set_search_param(search_params, attributes_to_hightlight, "attributesToHighlight")
+    set_search_param(search_params, matches, "matches")
+    set_search_param(search_params, sort, "sort")
 
     try:
         with console.status("Searching..."):
@@ -1151,27 +1119,12 @@ def update_documents_from_file(
 ) -> None:
     """Update documents in an index from a file."""
 
-    file_type = file_path.suffix
-
-    if file_type not in (".json", ".csv", ".ndjson"):
-        console.print(
-            f"[yellow bold]{file_type}[/yellow bold] files are not accepted. Only .json, .csv, and .ndjson are accepted",
-            style="red",
-        )
-        sys.exit()
-
     verify_url_and_master_key(console, url, master_key)
+    content_type = validate_file_type_and_set_content_type(console, file_path)
 
     with console.status("Adding documents..."):
         with open(file_path, "r") as f:
             documents = f.read().encode(encoding)
-
-        if file_type == ".csv":
-            content_type = "text/csv"
-        elif file_type == ".json":
-            content_type = "application/json"
-        elif file_type == ".ndjson":
-            content_type = "application/x-ndjson"
 
         # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
         # already verified they aren't None so ignore the MyPy warning

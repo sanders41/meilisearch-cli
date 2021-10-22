@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 from time import sleep
 from typing import Any, Callable
 
@@ -73,6 +74,30 @@ def process_request(
         panel = create_panel(update, title=title)
 
     console.print(panel)
+
+
+def set_search_param(search_params: dict[str, Any], param: Any, param_name: str) -> dict[str, Any]:
+    if param:
+        search_params[param_name] = param
+
+    return search_params
+
+
+def validate_file_type_and_set_content_type(console: Console, file_path: Path) -> str:
+    file_type = file_path.suffix
+
+    if file_type == ".csv":
+        return "text/csv"
+    elif file_type == ".json":
+        return "application/json"
+    elif file_type == ".ndjson":
+        return "application/x-ndjson"
+
+    console.print(
+        f"[yellow bold]{file_type}[/yellow bold] files are not accepted. Only .json, .csv, and .ndjson are accepted",
+        style="red",
+    )
+    sys.exit()
 
 
 def verify_url_and_master_key(
