@@ -388,6 +388,12 @@ def test_add_documents_in_batches_json_error(
     assert "Unable to parse" in out
 
 
+def test_api_docs_link(test_runner):
+    runner_result = test_runner.invoke(app, "api-docs-link")
+    out = runner_result.stdout
+    assert "https://docs.meilisearch.com/reference/api/" in out
+
+
 @pytest.mark.parametrize("use_env", [True, False])
 def test_create_dump(use_env, test_runner, base_url, master_key, monkeypatch):
     args = ["create-dump"]
@@ -753,6 +759,12 @@ def test_delete_index_no_url_maseter_key(remove_env, index_uid, test_runner, mon
         assert "MEILI_MASTER_KEY" in out
     else:
         assert remove_env in out
+
+
+def test_docs_link(test_runner):
+    runner_result = test_runner.invoke(app, "docs-link")
+    out = runner_result.stdout
+    assert "https://docs.meilisearch.com/" in out
 
 
 @pytest.mark.parametrize("use_env", [True, False])
