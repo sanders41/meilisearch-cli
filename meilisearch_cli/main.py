@@ -150,6 +150,13 @@ def add_documents_in_batches(
 
 
 @app.command()
+def api_docs_link() -> None:
+    """Gives a clickable link to the MeiliSearch API documenation."""
+
+    console.print("https://docs.meilisearch.com/reference/api/")
+
+
+@app.command()
 def create_dump(
     url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
     master_key: Optional[str] = Option(
@@ -320,6 +327,13 @@ def delete_index(
             console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
         else:
             raise e
+
+
+@app.command()
+def docs_link() -> None:
+    """Gives a clickable link to the MeiliSearch documenation."""
+
+    console.print("https://docs.meilisearch.com/")
 
 
 @app.command()
