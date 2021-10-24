@@ -41,7 +41,7 @@ def test_add_documents(
     monkeypatch,
     client,
 ):
-    args = ["add-documents", index_uid, json.dumps(small_movies)]
+    args = ["documents", "add", index_uid, json.dumps(small_movies)]
 
     if primary_key:
         args.append("--primary-key")
@@ -59,7 +59,7 @@ def test_add_documents(
         args.append("--master-key")
         args.append(master_key)
 
-    runner_result = test_runner.invoke(app, args)
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
     out = runner_result.stdout
 
     if not wait_flag:
@@ -78,7 +78,7 @@ def test_add_documents_no_url_master_key(remove_env, index_uid, test_runner, mon
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["add-documents", index_uid, '{"test": "test"}'])
+    runner_result = test_runner.invoke(app, ["documents", "add", index_uid, '{"test": "test"}'])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -93,7 +93,7 @@ def test_add_documents_json_error(
     index_uid,
     test_runner,
 ):
-    args = ["add-documents", index_uid, "test"]
+    args = ["documents", "add", index_uid, "test"]
 
     runner_result = test_runner.invoke(app, args)
 
@@ -123,7 +123,7 @@ def test_add_documents_from_file_json(
     client,
     small_movies_json_path,
 ):
-    args = ["add-documents-from-file", index_uid, str(small_movies_json_path)]
+    args = ["documents", "add-from-file", index_uid, str(small_movies_json_path)]
 
     if primary_key:
         args.append("--primary-key")
@@ -173,7 +173,7 @@ def test_add_documents_from_file_csv(
     client,
     small_movies_csv_path,
 ):
-    args = ["add-documents-from-file", index_uid, str(small_movies_csv_path)]
+    args = ["documents", "add-from-file", index_uid, str(small_movies_csv_path)]
 
     if primary_key:
         args.append("--primary-key")
@@ -223,7 +223,7 @@ def test_add_documents_from_file_ndjson(
     client,
     small_movies_ndjson_path,
 ):
-    args = ["add-documents-from-file", index_uid, str(small_movies_ndjson_path)]
+    args = ["documents", "add-from-file", index_uid, str(small_movies_ndjson_path)]
 
     if primary_key:
         args.append("--primary-key")
@@ -263,7 +263,7 @@ def test_add_documents_from_file_no_url_master_key(
         monkeypatch.delenv(remove_env, raising=False)
 
     runner_result = test_runner.invoke(
-        app, ["add-documents-from-file", index_uid, str(small_movies_json_path)]
+        app, ["documents", "add-from-file", index_uid, str(small_movies_json_path)]
     )
     out = runner_result.stdout
 
@@ -278,7 +278,7 @@ def test_add_documents_from_file_no_url_master_key(
 def test_add_documents_from_file_bad_path(index_uid, test_runner, tmp_path):
     runner_result = test_runner.invoke(
         app,
-        ["add-documents-from-file", index_uid, str(tmp_path / "bad.json")],
+        ["documents", "add-from-file", index_uid, str(tmp_path / "bad.json")],
     )
     out = runner_result.stdout
     assert "does not exist" in out
@@ -290,7 +290,9 @@ def test_add_documents_from_file_invalid_type(index_uid, test_runner, tmp_path):
     with open(file_path, "w") as f:
         f.write("")
 
-    runner_result = test_runner.invoke(app, ["add-documents-from-file", index_uid, str(file_path)])
+    runner_result = test_runner.invoke(
+        app, ["documents", "add-from-file", index_uid, str(file_path)]
+    )
     out = runner_result.stdout
     assert "not accepted" in out
 
@@ -319,7 +321,7 @@ def test_add_documents_in_batches(
     monkeypatch,
     client,
 ):
-    args = ["add-documents-in-batches", index_uid, json.dumps(small_movies)]
+    args = ["documents", "add-in-batches", index_uid, json.dumps(small_movies)]
 
     if batch_size:
         args.append("--batch-size")
@@ -364,7 +366,7 @@ def test_add_documents_in_batches_no_url_master_key(
         monkeypatch.delenv(remove_env, raising=False)
 
     runner_result = test_runner.invoke(
-        app, ["add-documents-in-batches", index_uid, '{"test": "test"}']
+        app, ["documents", "add-in-batches", index_uid, '{"test": "test"}']
     )
     out = runner_result.stdout
 
@@ -380,7 +382,7 @@ def test_add_documents_in_batches_json_error(
     index_uid,
     test_runner,
 ):
-    args = ["add-documents-in-batches", index_uid, "test"]
+    args = ["documents", "add-in-batches", index_uid, "test"]
 
     runner_result = test_runner.invoke(app, args)
 
@@ -396,7 +398,7 @@ def test_api_docs_link(test_runner):
 
 @pytest.mark.parametrize("use_env", [True, False])
 def test_create_dump(use_env, test_runner, base_url, master_key, monkeypatch):
-    args = ["create-dump"]
+    args = ["dump", "create"]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -423,7 +425,7 @@ def test_create_dump_no_url_master_key(remove_env, test_runner, monkeypatch):
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["create-dump"])
+    runner_result = test_runner.invoke(app, ["dump", "create"])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -438,7 +440,7 @@ def test_create_dump_no_url_master_key(remove_env, test_runner, monkeypatch):
 def test_create_index(
     primary_key, use_env, test_runner, index_uid, base_url, master_key, client, monkeypatch
 ):
-    args = ["create-index", index_uid]
+    args = ["index", "create", index_uid]
     if primary_key:
         args.append("--primary-key")
         args.append(primary_key)
@@ -471,7 +473,7 @@ def test_create_index(
 @pytest.mark.usefixtures("env_vars")
 def test_create_index_exists_error(test_runner, client, index_uid):
     client.create_index(index_uid)
-    runner_result = test_runner.invoke(app, ["create-index", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "create", index_uid])
     out = runner_result.stdout
     assert "already exists" in out
 
@@ -482,7 +484,7 @@ def test_create_index_error(mock_create, test_runner, index_uid):
     mock_create.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
         test_runner.invoke(
-            app, ["create-index", index_uid, "--primary-key", "alt_id"], catch_exceptions=False
+            app, ["index", "create", index_uid, "--primary-key", "alt_id"], catch_exceptions=False
         )
 
 
@@ -495,7 +497,7 @@ def test_create_index_no_url_master_key(remove_env, index_uid, test_runner, monk
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["create-index", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "create", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -525,7 +527,7 @@ def test_delete_all_documents(
     update = client.index(index_uid).add_documents(small_movies)
     client.index(index_uid).wait_for_pending_update(update["updateId"])
 
-    args = ["delete-all-documents", index_uid]
+    args = ["documents", "delete-all", index_uid]
 
     if wait_flag:
         args.append(wait_flag)
@@ -558,7 +560,7 @@ def test_delete_all_documents_no_url_master_key(remove_env, index_uid, test_runn
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["delete-all-documents", index_uid])
+    runner_result = test_runner.invoke(app, ["documents", "delete-all", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -590,7 +592,7 @@ def test_delete_document(
     documents = client.index(index_uid).get_documents()
     document_id = documents[0]["id"]
 
-    args = ["delete-document", index_uid, document_id]
+    args = ["documents", "delete", index_uid, document_id]
 
     if wait_flag:
         args.append(wait_flag)
@@ -625,7 +627,7 @@ def test_delete_document_no_url_master_key(remove_env, index_uid, test_runner, m
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["delete-document", index_uid, "1"])
+    runner_result = test_runner.invoke(app, ["documents", "delete", index_uid, "1"])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -658,7 +660,7 @@ def test_delete_documents(
     document_id_1 = documents[0]["id"]
     document_id_2 = documents[1]["id"]
 
-    args = ["delete-documents", index_uid, document_id_1, document_id_2]
+    args = ["documents", "delete-multiple", index_uid, document_id_1, document_id_2]
 
     if wait_flag:
         args.append(wait_flag)
@@ -694,7 +696,7 @@ def test_delete_documents_no_url_master_key(remove_env, index_uid, test_runner, 
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["delete-documents", index_uid, "1", "2"])
+    runner_result = test_runner.invoke(app, ["documents", "delete-multiple", index_uid, "1", "2"])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -706,7 +708,7 @@ def test_delete_documents_no_url_master_key(remove_env, index_uid, test_runner, 
 
 @pytest.mark.parametrize("use_env", [True, False])
 def test_delete_index(use_env, base_url, master_key, test_runner, index_uid, monkeypatch, client):
-    args = ["delete-index", index_uid]
+    args = ["index", "delete", index_uid]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -729,7 +731,7 @@ def test_delete_index(use_env, base_url, master_key, test_runner, index_uid, mon
 
 @pytest.mark.usefixtures("env_vars")
 def test_delete_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["delete-index", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "delete", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -739,7 +741,7 @@ def test_delete_index_not_found_error(test_runner, index_uid):
 def test_delete_index_error(mock_delete, test_runner, index_uid):
     mock_delete.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["delete-index", index_uid], catch_exceptions=False)
+        test_runner.invoke(app, ["index", "delete", index_uid], catch_exceptions=False)
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
@@ -751,7 +753,7 @@ def test_delete_index_no_url_maseter_key(remove_env, index_uid, test_runner, mon
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["delete-index", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "delete", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -771,7 +773,7 @@ def test_docs_link(test_runner):
 def test_get_all_update_status(
     use_env, index_uid, base_url, master_key, test_runner, client, small_movies, monkeypatch
 ):
-    args = ["get-all-update-status", index_uid]
+    args = ["index", "get-all-update-status", index_uid]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -805,7 +807,7 @@ def test_get_all_update_status_no_url_master_key(remove_env, index_uid, test_run
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["get-all-update-status", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "get-all-update-status", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -817,7 +819,7 @@ def test_get_all_update_status_no_url_master_key(remove_env, index_uid, test_run
 
 @pytest.mark.usefixtures("env_vars")
 def test_get_all_update_status_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["get-all-update-status", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "get-all-update-status", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -827,7 +829,9 @@ def test_get_all_update_status_index_not_found_error(test_runner, index_uid):
 def test_get_all_update_status_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["get-all-update-status", index_uid], catch_exceptions=False)
+        test_runner.invoke(
+            app, ["index", "get-all-update-status", index_uid], catch_exceptions=False
+        )
 
 
 @pytest.mark.parametrize("use_env", [True, False])
@@ -839,7 +843,7 @@ def test_get_document(
     client_index.wait_for_pending_update(update["updateId"])
     documents = client_index.get_documents()
 
-    args = ["get-document", index_uid, documents[0]["id"]]
+    args = ["documents", "get", index_uid, documents[0]["id"]]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -864,7 +868,7 @@ def test_get_document_no_url_master_key(remove_env, index_uid, test_runner, monk
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["get-document", index_uid, "test"])
+    runner_result = test_runner.invoke(app, ["documents", "get", index_uid, "test"])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -876,7 +880,7 @@ def test_get_document_no_url_master_key(remove_env, index_uid, test_runner, monk
 
 @pytest.mark.usefixtures("env_vars")
 def test_get_document_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["get-document", index_uid, "test"])
+    runner_result = test_runner.invoke(app, ["documents", "get", index_uid, "test"])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -886,7 +890,7 @@ def test_get_document_index_not_found_error(test_runner, index_uid):
 def test_get_document_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["get-document", index_uid, "test"], catch_exceptions=False)
+        test_runner.invoke(app, ["documents", "get", index_uid, "test"], catch_exceptions=False)
 
 
 @pytest.mark.parametrize("use_env", [True, False])
@@ -897,7 +901,7 @@ def test_get_documents(
     update = client_index.add_documents(small_movies)
     client_index.wait_for_pending_update(update["updateId"])
 
-    args = ["get-documents", index_uid]
+    args = ["documents", "get-all", index_uid]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -923,7 +927,7 @@ def test_get_documents_no_url_master_key(remove_env, index_uid, test_runner, mon
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["get-documents", index_uid])
+    runner_result = test_runner.invoke(app, ["documents", "get-all", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -935,7 +939,7 @@ def test_get_documents_no_url_master_key(remove_env, index_uid, test_runner, mon
 
 @pytest.mark.usefixtures("env_vars")
 def test_get_documents_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["get-documents", index_uid])
+    runner_result = test_runner.invoke(app, ["documents", "get-all", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -945,13 +949,13 @@ def test_get_documents_index_not_found_error(test_runner, index_uid):
 def test_get_documents_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["get-documents", index_uid], catch_exceptions=False)
+        test_runner.invoke(app, ["documents", "get-all", index_uid], catch_exceptions=False)
 
 
 @pytest.mark.parametrize("use_env", [True, False])
 def test_get_dump_status(use_env, test_runner, base_url, master_key, client, monkeypatch):
     response = client.create_dump()
-    args = ["get-dump-status", response["uid"]]
+    args = ["dump", "get-status", response["uid"]]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -978,7 +982,7 @@ def test_get_dump_status_no_url_master_key(remove_env, test_runner, monkeypatch)
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["get-dump-status", "1234-5678"])
+    runner_result = test_runner.invoke(app, ["dump", "get-status", "1234-5678"])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -990,7 +994,7 @@ def test_get_dump_status_no_url_master_key(remove_env, test_runner, monkeypatch)
 
 @pytest.mark.parametrize("use_env", [True, False])
 def test_get_index(use_env, base_url, master_key, test_runner, index_uid, monkeypatch, client):
-    args = ["get-index", index_uid]
+    args = ["index", "get", index_uid]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -1010,7 +1014,7 @@ def test_get_index(use_env, base_url, master_key, test_runner, index_uid, monkey
 
 @pytest.mark.usefixtures("env_vars")
 def test_get_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["get-index", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "get", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1020,7 +1024,7 @@ def test_get_index_not_found_error(test_runner, index_uid):
 def test_get_index_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["get-index", index_uid], catch_exceptions=False)
+        test_runner.invoke(app, ["index", "get", index_uid], catch_exceptions=False)
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
@@ -1032,7 +1036,7 @@ def test_get_index_no_url_master_key(remove_env, index_uid, test_runner, monkeyp
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["get-index", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "get", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -1044,7 +1048,7 @@ def test_get_index_no_url_master_key(remove_env, index_uid, test_runner, monkeyp
 
 @pytest.mark.parametrize("use_env", [True, False])
 def test_get_indexes(use_env, base_url, master_key, test_runner, index_uid, monkeypatch, client):
-    args = ["get-indexes"]
+    args = ["index", "get-all"]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -1075,7 +1079,7 @@ def test_get_indexes_no_url_master_key(remove_env, test_runner, monkeypatch):
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["get-indexes"])
+    runner_result = test_runner.invoke(app, ["index", "get-all"])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -1128,7 +1132,7 @@ def test_get_keys_no_url_master_key(remove_env, test_runner, monkeypatch):
 def test_get_primary_key(
     use_env, index_uid, base_url, master_key, test_runner, client, monkeypatch
 ):
-    args = ["get-primary-key", index_uid]
+    args = ["index", "get-primary-key", index_uid]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -1156,7 +1160,7 @@ def test_get_primary_key_no_url_master_key(remove_env, index_uid, test_runner, m
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["get-primary-key", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "get-primary-key", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -1168,7 +1172,7 @@ def test_get_primary_key_no_url_master_key(remove_env, index_uid, test_runner, m
 
 @pytest.mark.usefixtures("env_vars")
 def test_get_primary_key_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["get-primary-key", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "get-primary-key", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1178,12 +1182,12 @@ def test_get_primary_key_not_found_error(test_runner, index_uid):
 def test_get_primary_key_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["get-primary-key", index_uid], catch_exceptions=False)
+        test_runner.invoke(app, ["index", "get-primary-key", index_uid], catch_exceptions=False)
 
 
 @pytest.mark.parametrize("use_env", [True, False])
 def test_get_settings(use_env, index_uid, base_url, master_key, test_runner, client, monkeypatch):
-    args = ["get-settings", index_uid]
+    args = ["index", "get-settings", index_uid]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -1217,7 +1221,7 @@ def test_get_settings_no_url_master_key(remove_env, index_uid, test_runner, monk
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["get-settings", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "get-settings", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -1229,7 +1233,7 @@ def test_get_settings_no_url_master_key(remove_env, index_uid, test_runner, monk
 
 @pytest.mark.usefixtures("env_vars")
 def test_get_settings_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["get-settings", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "get-settings", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1239,12 +1243,12 @@ def test_get_settings_index_not_found_error(test_runner, index_uid):
 def test_get_settings_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["get-settings", index_uid], catch_exceptions=False)
+        test_runner.invoke(app, ["index", "get-settings", index_uid], catch_exceptions=False)
 
 
 @pytest.mark.parametrize("use_env", [True, False])
 def test_get_stats(use_env, index_uid, base_url, master_key, test_runner, client, monkeypatch):
-    args = ["get-stats", index_uid]
+    args = ["index", "get-stats", index_uid]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -1271,7 +1275,7 @@ def test_get_stats_no_url_master_key(remove_env, index_uid, test_runner, monkeyp
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["get-stats", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "get-stats", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -1283,7 +1287,7 @@ def test_get_stats_no_url_master_key(remove_env, index_uid, test_runner, monkeyp
 
 @pytest.mark.usefixtures("env_vars")
 def test_get_stats_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["get-stats", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "get-stats", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1293,14 +1297,14 @@ def test_get_stats_index_not_found_error(test_runner, index_uid):
 def test_get_stats_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["get-stats", index_uid], catch_exceptions=False)
+        test_runner.invoke(app, ["index", "get-stats", index_uid], catch_exceptions=False)
 
 
 @pytest.mark.parametrize("use_env", [True, False])
 def test_get_update_status(
     use_env, index_uid, base_url, master_key, test_runner, client, small_movies, monkeypatch
 ):
-    args = ["get-update-status", index_uid]
+    args = ["index", "get-update-status", index_uid]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -1332,7 +1336,7 @@ def test_get_update_status_no_url_master_key(remove_env, index_uid, test_runner,
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["get-update-status", index_uid, "0"])
+    runner_result = test_runner.invoke(app, ["index", "get-update-status", index_uid, "0"])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -1344,7 +1348,7 @@ def test_get_update_status_no_url_master_key(remove_env, index_uid, test_runner,
 
 @pytest.mark.usefixtures("env_vars")
 def test_get_update_status_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["get-update-status", index_uid, "0"])
+    runner_result = test_runner.invoke(app, ["index", "get-update-status", index_uid, "0"])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1354,7 +1358,9 @@ def test_get_update_status_index_not_found_error(test_runner, index_uid):
 def test_get_update_status_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["get-update-status", index_uid, "0"], catch_exceptions=False)
+        test_runner.invoke(
+            app, ["index", "get-update-status", index_uid, "0"], catch_exceptions=False
+        )
 
 
 @pytest.mark.parametrize("use_env", [True, False])
@@ -1428,7 +1434,7 @@ def test_health_no_url(test_runner):
 def test_reset_displayed_attributes(
     use_env, wait_flag, expected, index_uid, base_url, master_key, test_runner, client, monkeypatch
 ):
-    args = ["reset-displayed-attributes", index_uid]
+    args = ["index", "reset-displayed-attributes", index_uid]
 
     if wait_flag:
         args.append(wait_flag)
@@ -1464,7 +1470,7 @@ def test_reset_displayed_attributes_no_url_master_key(
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["reset-displayed-attributes", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-displayed-attributes", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -1476,7 +1482,7 @@ def test_reset_displayed_attributes_no_url_master_key(
 
 @pytest.mark.usefixtures("env_vars")
 def test_reset_displayed_attributes_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["reset-displayed-attributes", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-displayed-attributes", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1494,7 +1500,9 @@ def test_reset_displayed_attributes_failed_status(mock_get, test_runner, client,
     ]
 
     client.create_index(index_uid)
-    runner_result = test_runner.invoke(app, ["reset-displayed-attributes", index_uid, "-w"])
+    runner_result = test_runner.invoke(
+        app, ["index", "reset-displayed-attributes", index_uid, "-w"]
+    )
     out = runner_result.stdout
     assert "'status': 'failed'" in out
 
@@ -1504,7 +1512,9 @@ def test_reset_displayed_attributes_failed_status(mock_get, test_runner, client,
 def test_reset_displayed_attributes_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["reset-displayed-attributes", index_uid], catch_exceptions=False)
+        test_runner.invoke(
+            app, ["index", "reset-displayed-attributes", index_uid], catch_exceptions=False
+        )
 
 
 @pytest.mark.parametrize("wait_flag, expected", [(None, "updateId"), ("--wait", ""), ("-w", "")])
@@ -1512,7 +1522,7 @@ def test_reset_displayed_attributes_error(mock_get, test_runner, index_uid):
 def test_reset_distinct_attribute(
     use_env, wait_flag, expected, index_uid, base_url, master_key, test_runner, client, monkeypatch
 ):
-    args = ["reset-distinct-attribute", index_uid]
+    args = ["index", "reset-distinct-attribute", index_uid]
 
     if wait_flag:
         args.append(wait_flag)
@@ -1548,7 +1558,7 @@ def test_reset_distinct_attribute_no_url_master_key(
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["reset-distinct-attribute", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-distinct-attribute", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -1560,7 +1570,7 @@ def test_reset_distinct_attribute_no_url_master_key(
 
 @pytest.mark.usefixtures("env_vars")
 def test_reset_distinct_attribute_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["reset-distinct-attribute", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-distinct-attribute", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1570,7 +1580,9 @@ def test_reset_distinct_attribute_index_not_found_error(test_runner, index_uid):
 def test_reset_distinct_attribute_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["reset-distinct-attribute", index_uid], catch_exceptions=False)
+        test_runner.invoke(
+            app, ["index", "reset-distinct-attribute", index_uid], catch_exceptions=False
+        )
 
 
 @pytest.mark.parametrize(
@@ -1580,7 +1592,7 @@ def test_reset_distinct_attribute_error(mock_get, test_runner, index_uid):
 def test_reset_filterable_attributes(
     use_env, wait_flag, expected, index_uid, base_url, master_key, test_runner, client, monkeypatch
 ):
-    args = ["reset-filterable-attributes", index_uid]
+    args = ["index", "reset-filterable-attributes", index_uid]
 
     if wait_flag:
         args.append(wait_flag)
@@ -1616,7 +1628,7 @@ def test_reset_filterable_attributes_no_url_master_key(
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["reset-filterable-attributes", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-filterable-attributes", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -1628,7 +1640,7 @@ def test_reset_filterable_attributes_no_url_master_key(
 
 @pytest.mark.usefixtures("env_vars")
 def test_reset_filterable_attributes_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["reset-filterable-attributes", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-filterable-attributes", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1638,7 +1650,9 @@ def test_reset_filterable_attributes_index_not_found_error(test_runner, index_ui
 def test_reset_filterable_attributes_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["reset-filterable-attributes", index_uid], catch_exceptions=False)
+        test_runner.invoke(
+            app, ["index", "reset-filterable-attributes", index_uid], catch_exceptions=False
+        )
 
 
 @pytest.mark.parametrize(
@@ -1653,7 +1667,7 @@ def test_reset_filterable_attributes_error(mock_get, test_runner, index_uid):
 def test_reset_ranking_rules(
     use_env, wait_flag, expected, index_uid, base_url, master_key, test_runner, client, monkeypatch
 ):
-    args = ["reset-ranking-rules", index_uid]
+    args = ["index", "reset-ranking-rules", index_uid]
 
     if wait_flag:
         args.append(wait_flag)
@@ -1687,7 +1701,7 @@ def test_reset_ranking_rules_no_url_master_key(remove_env, index_uid, test_runne
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["reset-ranking-rules", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-ranking-rules", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -1699,7 +1713,7 @@ def test_reset_ranking_rules_no_url_master_key(remove_env, index_uid, test_runne
 
 @pytest.mark.usefixtures("env_vars")
 def test_reset_ranking_rules_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["reset-ranking-rules", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-ranking-rules", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1709,7 +1723,7 @@ def test_reset_ranking_rules_index_not_found_error(test_runner, index_uid):
 def test_reset_ranking_rules_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["reset-ranking-rules", index_uid], catch_exceptions=False)
+        test_runner.invoke(app, ["index", "reset-ranking-rules", index_uid], catch_exceptions=False)
 
 
 @pytest.mark.parametrize(
@@ -1719,7 +1733,7 @@ def test_reset_ranking_rules_error(mock_get, test_runner, index_uid):
 def test_reset_searchable_attributes(
     use_env, wait_flag, expected, index_uid, base_url, master_key, test_runner, client, monkeypatch
 ):
-    args = ["reset-searchable-attributes", index_uid]
+    args = ["index", "reset-searchable-attributes", index_uid]
 
     if wait_flag:
         args.append(wait_flag)
@@ -1755,7 +1769,7 @@ def test_reset_searchable_attributes_no_url_master_key(
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["reset-searchable-attributes", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-searchable-attributes", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -1767,7 +1781,7 @@ def test_reset_searchable_attributes_no_url_master_key(
 
 @pytest.mark.usefixtures("env_vars")
 def test_reset_searchable_attributes_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["reset-searchable-attributes", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-searchable-attributes", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1777,7 +1791,9 @@ def test_reset_searchable_attributes_index_not_found_error(test_runner, index_ui
 def test_reset_searchable_attributes_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["reset-searchable-attributes", index_uid], catch_exceptions=False)
+        test_runner.invoke(
+            app, ["index", "reset-searchable-attributes", index_uid], catch_exceptions=False
+        )
 
 
 @pytest.mark.parametrize("wait_flag", [None, "--wait", "-w"])
@@ -1785,7 +1801,7 @@ def test_reset_searchable_attributes_error(mock_get, test_runner, index_uid):
 def test_reset_settings(
     use_env, wait_flag, index_uid, base_url, master_key, test_runner, client, monkeypatch
 ):
-    args = ["reset-settings", index_uid]
+    args = ["index", "reset-settings", index_uid]
 
     if wait_flag:
         args.append(wait_flag)
@@ -1843,7 +1859,7 @@ def test_reset_settings_no_url_master_key(remove_env, index_uid, test_runner, mo
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["reset-settings", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-settings", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -1855,7 +1871,7 @@ def test_reset_settings_no_url_master_key(remove_env, index_uid, test_runner, mo
 
 @pytest.mark.usefixtures("env_vars")
 def test_reset_settings_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["reset-settings", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-settings", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1865,7 +1881,7 @@ def test_reset_settings_index_not_found_error(test_runner, index_uid):
 def test_reset_settings_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["reset-settings", index_uid], catch_exceptions=False)
+        test_runner.invoke(app, ["index", "reset-settings", index_uid], catch_exceptions=False)
 
 
 @pytest.mark.parametrize(
@@ -1875,7 +1891,7 @@ def test_reset_settings_error(mock_get, test_runner, index_uid):
 def test_reset_stop_words(
     use_env, wait_flag, expected, index_uid, base_url, master_key, test_runner, client, monkeypatch
 ):
-    args = ["reset-stop-words", index_uid]
+    args = ["index", "reset-stop-words", index_uid]
 
     if wait_flag:
         args.append(wait_flag)
@@ -1909,7 +1925,7 @@ def test_reset_stop_words_no_url_master_key(remove_env, index_uid, test_runner, 
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["reset-stop-words", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-stop-words", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -1921,7 +1937,7 @@ def test_reset_stop_words_no_url_master_key(remove_env, index_uid, test_runner, 
 
 @pytest.mark.usefixtures("env_vars")
 def test_reset_stop_words_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["reset-stop-words", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-stop-words", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1931,7 +1947,7 @@ def test_reset_stop_words_index_not_found_error(test_runner, index_uid):
 def test_reset_stop_words_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["reset-stop-words", index_uid], catch_exceptions=False)
+        test_runner.invoke(app, ["index", "reset-stop-words", index_uid], catch_exceptions=False)
 
 
 @pytest.mark.parametrize(
@@ -1941,7 +1957,7 @@ def test_reset_stop_words_error(mock_get, test_runner, index_uid):
 def test_reset_synonyms(
     use_env, wait_flag, expected, index_uid, base_url, master_key, test_runner, client, monkeypatch
 ):
-    args = ["reset-synonyms", index_uid]
+    args = ["index", "reset-synonyms", index_uid]
 
     if wait_flag:
         args.append(wait_flag)
@@ -1975,7 +1991,7 @@ def test_reset_syonyms_no_url_master_key(remove_env, index_uid, test_runner, mon
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["reset-synonyms", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-synonyms", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -1987,7 +2003,7 @@ def test_reset_syonyms_no_url_master_key(remove_env, index_uid, test_runner, mon
 
 @pytest.mark.usefixtures("env_vars")
 def test_reset_synonyms_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["reset-synonyms", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-synonyms", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1997,7 +2013,7 @@ def test_reset_synonyms_index_not_found_error(test_runner, index_uid):
 def test_reset_synonyms_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(app, ["reset-synonyms", index_uid], catch_exceptions=False)
+        test_runner.invoke(app, ["index", "reset-synonyms", index_uid], catch_exceptions=False)
 
 
 @pytest.mark.parametrize("use_env", [True, False])
@@ -2156,7 +2172,7 @@ def test_update_displayed_attributes(
     client,
     monkeypatch,
 ):
-    args = ["update-displayed-attributes", index_uid, "genre", "title"]
+    args = ["index", "update-displayed-attributes", index_uid, "genre", "title"]
 
     if wait_flag:
         args.append(wait_flag)
@@ -2189,7 +2205,9 @@ def test_update_displayed_attributes_no_url_master_key(
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["update-displayed-attributes", index_uid, "title"])
+    runner_result = test_runner.invoke(
+        app, ["index", "update-displayed-attributes", index_uid, "title"]
+    )
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -2219,7 +2237,7 @@ def test_update_distinct_attribute(
     client,
     monkeypatch,
 ):
-    args = ["update-distinct-attribute", index_uid, "title"]
+    args = ["index", "update-distinct-attribute", index_uid, "title"]
 
     if wait_flag:
         args.append(wait_flag)
@@ -2252,7 +2270,9 @@ def test_update_distinct_attribute_no_url_master_key(
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["update-distinct-attribute", index_uid, "title"])
+    runner_result = test_runner.invoke(
+        app, ["index", "update-distinct-attribute", index_uid, "title"]
+    )
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -2273,7 +2293,7 @@ def test_update_index(
     monkeypatch,
 ):
     primary_key = "title"
-    args = ["update-index", index_uid, "--primary-key", primary_key]
+    args = ["index", "update", index_uid, "--primary-key", primary_key]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -2310,7 +2330,7 @@ def test_update_documents(
     monkeypatch,
     client,
 ):
-    args = ["update-documents", index_uid, json.dumps(small_movies)]
+    args = ["documents", "update", index_uid, json.dumps(small_movies)]
 
     if wait_flag:
         args.append(wait_flag)
@@ -2352,7 +2372,7 @@ def test_update_documents_no_url_master_key(remove_env, index_uid, test_runner, 
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["update-documents", index_uid, '{"test": "test"}'])
+    runner_result = test_runner.invoke(app, ["documents", "update", index_uid, '{"test": "test"}'])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -2367,7 +2387,7 @@ def test_update_documents_json_error(
     index_uid,
     test_runner,
 ):
-    args = ["update-documents", index_uid, "test"]
+    args = ["documents", "update", index_uid, "test"]
 
     runner_result = test_runner.invoke(app, args)
 
@@ -2392,7 +2412,7 @@ def test_update_documents_from_file_json(
     client,
     small_movies_json_path,
 ):
-    args = ["update-documents-from-file", index_uid, str(small_movies_json_path)]
+    args = ["documents", "update-from-file", index_uid, str(small_movies_json_path)]
 
     if wait_flag:
         args.append(wait_flag)
@@ -2432,7 +2452,7 @@ def test_update_documents_from_file_csv(
     client,
     small_movies_csv_path,
 ):
-    args = ["update-documents-from-file", index_uid, str(small_movies_csv_path)]
+    args = ["documents", "update-from-file", index_uid, str(small_movies_csv_path)]
 
     if wait_flag:
         args.append(wait_flag)
@@ -2472,7 +2492,7 @@ def test_update_documents_from_file_ndjson(
     client,
     small_movies_ndjson_path,
 ):
-    args = ["update-documents-from-file", index_uid, str(small_movies_ndjson_path)]
+    args = ["documents", "update-from-file", index_uid, str(small_movies_ndjson_path)]
 
     if wait_flag:
         args.append(wait_flag)
@@ -2507,7 +2527,7 @@ def test_update_documents_from_file_no_url_master_key(
         monkeypatch.delenv(remove_env, raising=False)
 
     runner_result = test_runner.invoke(
-        app, ["update-documents-from-file", index_uid, str(small_movies_json_path)]
+        app, ["documents", "update-from-file", index_uid, str(small_movies_json_path)]
     )
     out = runner_result.stdout
 
@@ -2522,7 +2542,7 @@ def test_update_documents_from_file_no_url_master_key(
 def test_update_documents_from_file_bad_path(index_uid, test_runner, tmp_path):
     runner_result = test_runner.invoke(
         app,
-        ["update-documents-from-file", index_uid, str(tmp_path / "bad.json")],
+        ["documents", "update-from-file", index_uid, str(tmp_path / "bad.json")],
     )
     out = runner_result.stdout
     assert "does not exist" in out
@@ -2535,7 +2555,7 @@ def test_update_documents_from_file_invalid_type(index_uid, test_runner, tmp_pat
         f.write("")
 
     runner_result = test_runner.invoke(
-        app, ["update-documents-from-file", index_uid, str(file_path)]
+        app, ["documents", "update-from-file", index_uid, str(file_path)]
     )
     out = runner_result.stdout
     assert "not accepted" in out
@@ -2560,7 +2580,7 @@ def test_update_documents_in_batches(
     monkeypatch,
     client,
 ):
-    args = ["update-documents-in-batches", index_uid, json.dumps(small_movies)]
+    args = ["documents", "update-in-batches", index_uid, json.dumps(small_movies)]
 
     if batch_size:
         args.append("--batch-size")
@@ -2600,7 +2620,7 @@ def test_update_documents_in_batches_no_url_master_key(
         monkeypatch.delenv(remove_env, raising=False)
 
     runner_result = test_runner.invoke(
-        app, ["update-documents-in-batches", index_uid, '{"test": "test"}']
+        app, ["documents", "update-in-batches", index_uid, '{"test": "test"}']
     )
     out = runner_result.stdout
 
@@ -2616,7 +2636,7 @@ def test_update_documents_in_batches_json_error(
     index_uid,
     test_runner,
 ):
-    args = ["update-documents-in-batches", index_uid, "test"]
+    args = ["documents", "update-in-batches", index_uid, "test"]
 
     runner_result = test_runner.invoke(app, args)
 
@@ -2633,7 +2653,7 @@ def test_update_index_no_url_master_key(remove_env, index_uid, test_runner, monk
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["update-index", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "update", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -2645,7 +2665,7 @@ def test_update_index_no_url_master_key(remove_env, index_uid, test_runner, monk
 
 @pytest.mark.usefixtures("env_vars")
 def test_update_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["update-index", index_uid, "--primary-key", "test"])
+    runner_result = test_runner.invoke(app, ["index", "update", index_uid, "--primary-key", "test"])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -2656,7 +2676,7 @@ def test_update_index_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
         test_runner.invoke(
-            app, ["update-index", index_uid, "--primary-key", "test"], catch_exceptions=False
+            app, ["index", "update", index_uid, "--primary-key", "test"], catch_exceptions=False
         )
 
 
@@ -2667,7 +2687,7 @@ def test_update_index_primary_key_exists(
     client,
 ):
     primary_key = "title"
-    args = ["update-index", index_uid, "--primary-key", primary_key]
+    args = ["index", "update", index_uid, "--primary-key", primary_key]
 
     index = client.create_index(index_uid, {"primaryKey": "id"})
     assert index.primary_key == "id"
@@ -2697,7 +2717,7 @@ def test_update_ranking_rules(
     client,
     monkeypatch,
 ):
-    args = ["update-ranking-rules", index_uid, "sort", "words"]
+    args = ["index", "update-ranking-rules", index_uid, "sort", "words"]
 
     if wait_flag:
         args.append(wait_flag)
@@ -2729,7 +2749,7 @@ def test_update_ranking_rules_no_url_master_key(remove_env, index_uid, test_runn
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["update-ranking-rules", index_uid, "sort"])
+    runner_result = test_runner.invoke(app, ["index", "update-ranking-rules", index_uid, "sort"])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -2759,7 +2779,7 @@ def test_update_searchable_attributes(
     client,
     monkeypatch,
 ):
-    args = ["update-searchable-attributes", index_uid, "genre", "title"]
+    args = ["index", "update-searchable-attributes", index_uid, "genre", "title"]
 
     if wait_flag:
         args.append(wait_flag)
@@ -2792,7 +2812,9 @@ def test_update_searchable_attributes_no_url_master_key(
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["update-searchable-attributes", index_uid, "title"])
+    runner_result = test_runner.invoke(
+        app, ["index", "update-searchable-attributes", index_uid, "title"]
+    )
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -2826,6 +2848,7 @@ def test_update_settings(
     }
 
     args = [
+        "index",
         "update-settings",
         index_uid,
         "--distinct-attribute",
@@ -2898,7 +2921,7 @@ def test_update_settings_no_url_master_key(remove_env, index_uid, test_runner, m
         monkeypatch.delenv(remove_env, raising=False)
 
     runner_result = test_runner.invoke(
-        app, ["update-settings", index_uid, "--distinct-attribute", "title"]
+        app, ["index", "update-settings", index_uid, "--distinct-attribute", "title"]
     )
     out = runner_result.stdout
 
@@ -2915,6 +2938,7 @@ def test_update_settings_json_error(
     test_runner,
 ):
     args = [
+        "index",
         "update-settings",
         index_uid,
         "--synonyms",
@@ -2947,7 +2971,7 @@ def test_update_sortable_attributes(
     client,
     monkeypatch,
 ):
-    args = ["update-sortable-attributes", index_uid, "genre", "title"]
+    args = ["index", "update-sortable-attributes", index_uid, "genre", "title"]
 
     if wait_flag:
         args.append(wait_flag)
@@ -2980,7 +3004,9 @@ def test_update_sotrable_attributes_no_url_master_key(
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["update-sortable-attributes", index_uid, "title"])
+    runner_result = test_runner.invoke(
+        app, ["index", "update-sortable-attributes", index_uid, "title"]
+    )
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -3010,7 +3036,7 @@ def test_update_stop_words(
     client,
     monkeypatch,
 ):
-    args = ["update-stop-words", index_uid, "a", "the"]
+    args = ["index", "update-stop-words", index_uid, "a", "the"]
 
     if wait_flag:
         args.append(wait_flag)
@@ -3041,7 +3067,7 @@ def test_update_stop_words_no_url_master_key(remove_env, index_uid, test_runner,
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["update-stop-words", index_uid, "the"])
+    runner_result = test_runner.invoke(app, ["index", "update-stop-words", index_uid, "the"])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -3071,7 +3097,7 @@ def test_update_synonyms(
     client,
     monkeypatch,
 ):
-    args = ["update-synonyms", index_uid, '{"logan": ["marvel", "wolverine"]}']
+    args = ["index", "update-synonyms", index_uid, '{"logan": ["marvel", "wolverine"]}']
 
     if wait_flag:
         args.append(wait_flag)
@@ -3103,7 +3129,7 @@ def test_update_synonyms_no_url_master_key(remove_env, index_uid, test_runner, m
         monkeypatch.delenv(remove_env, raising=False)
 
     runner_result = test_runner.invoke(
-        app, ["update-synonyms", index_uid, '{"logan": ["marvel", "wolverine"]}']
+        app, ["index", "update-synonyms", index_uid, '{"logan": ["marvel", "wolverine"]}']
     )
     out = runner_result.stdout
 
@@ -3120,6 +3146,7 @@ def test_update_synonyms_json_error(
     test_runner,
 ):
     args = [
+        "index",
         "update-synonyms",
         index_uid,
         "test",
