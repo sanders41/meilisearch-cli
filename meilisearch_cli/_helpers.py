@@ -11,6 +11,8 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.pretty import Pretty
 
+from meilisearch_cli._config import PANEL_BORDER_COLOR
+
 
 def create_client(url: str | None, master_key: str | None) -> Client:
     console = Console()
@@ -41,7 +43,7 @@ def create_panel(
     data: dict[str, Any] | list[dict[str, Any]] | str | None,
     *,
     title: str,
-    panel_border_color: str = "sky_blue2",
+    panel_border_color: str = PANEL_BORDER_COLOR,
     padding: tuple[int, int] = (1, 1),
     fit: bool = True,
 ) -> Panel:

@@ -2109,7 +2109,7 @@ def test_search_full(
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
 
     out = runner_result.stdout
-    assert "hits" in out
+    assert "Hits" in out
     assert "nbHits" in out
     assert "exhaustiveNbHits" in out
     assert "query" in out
@@ -2190,9 +2190,12 @@ def test_update_displayed_attributes(
 
     index = client.create_index(index_uid)
     runner_result = test_runner.invoke(app, args)
-    assert index.get_displayed_attributes() == ["genre", "title"]
-
     out = runner_result.stdout
+
+    if not wait_flag:
+        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+
+    assert index.get_displayed_attributes() == ["genre", "title"]
     assert expected in out
 
 
