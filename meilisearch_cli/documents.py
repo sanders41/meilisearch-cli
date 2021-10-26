@@ -5,18 +5,17 @@ from functools import partial
 from pathlib import Path
 from typing import List, Optional
 
-from meilisearch import Client
 from meilisearch.errors import MeiliSearchApiError
 from rich.console import Console
 from typer import Argument, Option, Typer
 
 from meilisearch_cli._config import MASTER_KEY_HELP_MESSAGE, URL_HELP_MESSAGE, WAIT_MESSAGE
 from meilisearch_cli._helpers import (
+    create_client,
     create_panel,
     print_json_parse_error_message,
     process_request,
     validate_file_type_and_set_content_type,
-    verify_url_and_master_key,
 )
 
 console = Console()
@@ -39,11 +38,7 @@ def add(
 ) -> None:
     """Add documents to an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     try:
         with console.status("Adding documents..."):
             process_request(
@@ -79,16 +74,13 @@ def add_from_file(
 ) -> None:
     """Add documents to an index from a file."""
 
-    verify_url_and_master_key(console, url, master_key)
     content_type = validate_file_type_and_set_content_type(console, file_path)
 
     with console.status("Adding documents..."):
         with open(file_path, "r") as f:
             documents = f.read().encode(encoding)
 
-        # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-        # already verified they aren't None so ignore the MyPy warning
-        client_index = Client(url, master_key).index(index)  # type: ignore
+        client_index = create_client(url, master_key).index(index)
         process_request(
             client_index,
             partial(client_index.add_documents_raw, documents, primary_key, content_type),
@@ -118,11 +110,7 @@ def add_in_batches(
 ) -> None:
     """Add documents to an index in batches."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     try:
         with console.status("Adding documents..."):
             process_request(
@@ -153,11 +141,7 @@ def delete_all(
 ) -> None:
     """Delete all documents from an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     with console.status("Deleting all documents..."):
         process_request(
             client_index,
@@ -181,11 +165,7 @@ def delete(
 ) -> None:
     """Delete a document from an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     with console.status("Deleting document..."):
         process_request(
             client_index,
@@ -209,11 +189,7 @@ def delete_multiple(
 ) -> None:
     """Delete multiple documents from an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     with console.status("Deleting documents..."):
         process_request(
             client_index,
@@ -236,11 +212,7 @@ def get(
 ) -> None:
     """Get a document from an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client = Client(url, master_key)  # type: ignore
+    client = create_client(url, master_key)
     try:
         with console.status("Getting document..."):
             document = client.index(index).get_document(document_id)
@@ -264,11 +236,7 @@ def get_all(
 ) -> None:
     """Get all documents from an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client = Client(url, master_key)  # type: ignore
+    client = create_client(url, master_key)
     try:
         with console.status("Getting documents..."):
             status = client.index(index).get_documents()
@@ -298,11 +266,7 @@ def update(
 ) -> None:
     """Update documents in an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     try:
         with console.status("Updating documents..."):
             process_request(
@@ -338,16 +302,13 @@ def update_from_file(
 ) -> None:
     """Update documents in an index from a file."""
 
-    verify_url_and_master_key(console, url, master_key)
     content_type = validate_file_type_and_set_content_type(console, file_path)
 
     with console.status("Adding documents..."):
         with open(file_path, "r") as f:
             documents = f.read().encode(encoding)
 
-        # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-        # already verified they aren't None so ignore the MyPy warning
-        client_index = Client(url, master_key).index(index)  # type: ignore
+        client_index = create_client(url, master_key).index(index)
         process_request(
             client_index,
             partial(client_index.add_documents_raw, documents, primary_key, content_type),
@@ -377,11 +338,7 @@ def update_in_batches(
 ) -> None:
     """Add documents to an index in batches."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     try:
         with console.status("Adding documents..."):
             process_request(
