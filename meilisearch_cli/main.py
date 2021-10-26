@@ -10,7 +10,7 @@ from typer import Argument, Option, Typer
 
 from meilisearch_cli import documents, dump, index
 from meilisearch_cli._config import MASTER_KEY_HELP_MESSAGE, URL_HELP_MESSAGE
-from meilisearch_cli._helpers import create_panel, set_search_param, verify_url_and_master_key
+from meilisearch_cli._helpers import create_client, create_panel, set_search_param
 
 console = Console()
 app = Typer()
@@ -42,11 +42,7 @@ def get_keys(
 ) -> None:
     """Gets the public and private keys"""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client = Client(url, master_key)  # type: ignore
+    client = create_client(url, master_key)
     with console.status("Getting keys..."):
         keys = client.get_keys()
         panel = create_panel(keys, title="Keys")
@@ -63,11 +59,7 @@ def get_version(
 ) -> None:
     """Gets the MeiliSearch version information."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client = Client(url, master_key)  # type: ignore
+    client = create_client(url, master_key)
     with console.status("Getting version..."):
         version = client.get_version()
         panel = create_panel(version, title="Version Information")
@@ -130,11 +122,7 @@ def search(
 ) -> None:
     """Perform a search."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client = Client(url, master_key)  # type: ignore
+    client = create_client(url, master_key)
     search_params: dict[str, Any] = {}
 
     set_search_param(search_params, offset, "offset")

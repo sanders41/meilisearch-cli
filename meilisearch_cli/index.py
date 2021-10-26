@@ -4,17 +4,16 @@ import json
 from functools import partial
 from typing import Any, List, Optional
 
-from meilisearch import Client
 from meilisearch.errors import MeiliSearchApiError
 from rich.console import Console
 from typer import Argument, Option, Typer
 
 from meilisearch_cli._config import MASTER_KEY_HELP_MESSAGE, URL_HELP_MESSAGE, WAIT_MESSAGE
 from meilisearch_cli._helpers import (
+    create_client,
     create_panel,
     print_json_parse_error_message,
     process_request,
-    verify_url_and_master_key,
 )
 
 console = Console()
@@ -32,11 +31,7 @@ def create(
 ) -> None:
     """Create an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client = Client(url, master_key)  # type: ignore
+    client = create_client(url, master_key)
     try:
         with console.status("Creating index..."):
             if primary_key:
@@ -67,11 +62,7 @@ def delete(
 ) -> None:
     """Delete an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client = Client(url, master_key)  # type: ignore
+    client = create_client(url, master_key)
     try:
         with console.status("Deleting the index..."):
             response = client.index(index).delete()
@@ -100,11 +91,7 @@ def get(
 ) -> None:
     """Gets a single index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client = Client(url, master_key)  # type: ignore
+    client = create_client(url, master_key)
     try:
         with console.status("Getting index..."):
             returned_index = client.get_raw_index(index)
@@ -127,11 +114,7 @@ def get_all(
 ) -> None:
     """Get all indexes."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client = Client(url, master_key)  # type: ignore
+    client = create_client(url, master_key)
     with console.status("Getting indexes..."):
         indexes = client.get_raw_indexes()
         panel = create_panel(indexes, title="All Indexes")
@@ -149,11 +132,7 @@ def get_primary_key(
 ) -> None:
     """Get the primary key of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client = Client(url, master_key)  # type: ignore
+    client = create_client(url, master_key)
     try:
         with console.status("Getting primary key..."):
             primary_key = client.index(index).get_primary_key()
@@ -177,11 +156,7 @@ def get_stats(
 ) -> None:
     """Get the stats of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client = Client(url, master_key)  # type: ignore
+    client = create_client(url, master_key)
     try:
         with console.status("Getting stats..."):
             settings = client.index(index).get_stats()
@@ -207,11 +182,7 @@ def get_all_update_status(
 ) -> None:
     """Get all update statuses of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client = Client(url, master_key)  # type: ignore
+    client = create_client(url, master_key)
     try:
         with console.status("Getting update status..."):
             status = client.index(index).get_all_update_status()
@@ -235,11 +206,7 @@ def get_settings(
 ) -> None:
     """Get the settings of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client = Client(url, master_key)  # type: ignore
+    client = create_client(url, master_key)
     try:
         with console.status("Getting settings..."):
             settings = client.index(index).get_settings()
@@ -266,11 +233,7 @@ def get_update_status(
 ) -> None:
     """Get the update status of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client = Client(url, master_key)  # type: ignore
+    client = create_client(url, master_key)
     try:
         with console.status("Getting update status..."):
             status = client.index(index).get_update_status(update_id)
@@ -297,11 +260,7 @@ def reset_displayed_attributes(
 ) -> None:
     """Reset displayed attributes of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     try:
         with console.status("Resetting displayed attributes..."):
             process_request(
@@ -332,11 +291,7 @@ def reset_distinct_attribute(
 ) -> None:
     """Reset distinct attribute of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     try:
         with console.status("Resetting distinct attribute..."):
             process_request(
@@ -367,11 +322,7 @@ def reset_filterable_attributes(
 ) -> None:
     """Reset filterable attributes of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     try:
         with console.status("Resetting filterable attributes..."):
             process_request(
@@ -400,11 +351,7 @@ def reset_ranking_rules(
 ) -> None:
     """Reset ranking rules of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     try:
         with console.status("Resetting ranking rules..."):
             process_request(
@@ -435,11 +382,7 @@ def reset_searchable_attributes(
 ) -> None:
     """Reset searchable attributes of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     try:
         with console.status("Resetting searchable attributes..."):
             process_request(
@@ -468,11 +411,7 @@ def reset_settings(
 ) -> None:
     """Reset all settings of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     try:
         with console.status("Resetting settings..."):
             process_request(
@@ -501,11 +440,7 @@ def reset_stop_words(
 ) -> None:
     """Reset stop words of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     try:
         with console.status("Resetting stop words..."):
             process_request(
@@ -534,11 +469,7 @@ def reset_synonyms(
 ) -> None:
     """Reset synonyms of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     try:
         with console.status("Resetting synonyms..."):
             process_request(
@@ -570,11 +501,7 @@ def update_displayed_attributes(
 ) -> None:
     """Update the displayed attributes of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     with console.status("Updating displayed attributes..."):
         process_request(
             client_index,
@@ -600,11 +527,7 @@ def update_distinct_attribute(
 ) -> None:
     """Update the distinct attributes of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     with console.status("Updating distinct attribute..."):
         process_request(
             client_index,
@@ -629,11 +552,7 @@ def update(
 ) -> None:
     """Update an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client = Client(url, master_key)  # type: ignore
+    client = create_client(url, master_key)
     try:
         with console.status("Updating index..."):
             # Ignore type here because the meiliserach-python has the wrong type expected
@@ -670,11 +589,7 @@ def update_ranking_rules(
 ) -> None:
     """Update the ranking rules of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     with console.status("Updating ranking rules..."):
         process_request(
             client_index,
@@ -700,11 +615,7 @@ def update_searchable_attributes(
 ) -> None:
     """Update the searchable attributes of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     with console.status("Updating searchable attributes..."):
         process_request(
             client_index,
@@ -743,11 +654,7 @@ def update_settings(
 ) -> None:
     """Update the settings of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     try:
         settings: dict[str, Any] = {}
 
@@ -794,11 +701,7 @@ def update_sortable_attributes(
 ) -> None:
     """Update the sortable attributes of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     with console.status("Updating sortable attributes..."):
         process_request(
             client_index,
@@ -822,11 +725,7 @@ def update_stop_words(
 ) -> None:
     """Update the stop words of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     with console.status("Updating stop words..."):
         process_request(
             client_index,
@@ -852,11 +751,7 @@ def update_synonyms(
 ) -> None:
     """Update the searchable attributes of an index."""
 
-    verify_url_and_master_key(console, url, master_key)
-
-    # MyPy compains about optional str for url and master_key however verify_url_and_master_key has
-    # already verified they aren't None so ignore the MyPy warning
-    client_index = Client(url, master_key).index(index)  # type: ignore
+    client_index = create_client(url, master_key).index(index)
     try:
         with console.status("Updating searchable attributes..."):
             process_request(
