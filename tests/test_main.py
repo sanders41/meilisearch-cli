@@ -2109,7 +2109,7 @@ def test_search_full(
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
 
     out = runner_result.stdout
-    assert "hits" in out
+    assert "Hits" in out
     assert "nbHits" in out
     assert "exhaustiveNbHits" in out
     assert "query" in out
