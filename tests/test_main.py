@@ -2738,6 +2738,10 @@ def test_update_ranking_rules(
 
     out = runner_result.stdout
 
+    if not wait_flag:
+        update_id = get_update_id_from_output(out)
+        index.wait_for_pending_update(update_id)
+
     assert index.get_ranking_rules() == ["sort", "words"]
     assert expected in out
 
@@ -2797,9 +2801,13 @@ def test_update_searchable_attributes(
 
     index = client.create_index(index_uid)
     runner_result = test_runner.invoke(app, args)
-    assert index.get_searchable_attributes() == ["genre", "title"]
-
     out = runner_result.stdout
+
+    if not wait_flag:
+        update_id = get_update_id_from_output(out)
+        index.wait_for_pending_update(update_id)
+
+    assert index.get_searchable_attributes() == ["genre", "title"]
     assert expected in out
 
 
@@ -2989,9 +2997,13 @@ def test_update_sortable_attributes(
 
     index = client.create_index(index_uid)
     runner_result = test_runner.invoke(app, args)
-    assert index.get_sortable_attributes() == ["genre", "title"]
-
     out = runner_result.stdout
+
+    if not wait_flag:
+        update_id = get_update_id_from_output(out)
+        index.wait_for_pending_update(update_id)
+
+    assert index.get_sortable_attributes() == ["genre", "title"]
     assert expected in out
 
 
@@ -3054,9 +3066,13 @@ def test_update_stop_words(
 
     index = client.create_index(index_uid)
     runner_result = test_runner.invoke(app, args)
-    assert index.get_stop_words() == ["a", "the"]
-
     out = runner_result.stdout
+
+    if not wait_flag:
+        update_id = get_update_id_from_output(out)
+        index.wait_for_pending_update(update_id)
+
+    assert index.get_stop_words() == ["a", "the"]
     assert expected in out
 
 
@@ -3114,10 +3130,14 @@ def test_update_synonyms(
         args.append(master_key)
 
     index = client.create_index(index_uid)
-    runner_result = test_runner.invoke(app, args)
-    assert index.get_synonyms() == {"logan": ["marvel", "wolverine"]}
-
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
     out = runner_result.stdout
+
+    if not wait_flag:
+        update_id = get_update_id_from_output(out)
+        index.wait_for_pending_update(update_id)
+
+    assert index.get_synonyms() == {"logan": ["marvel", "wolverine"]}
     assert expected in out
 
 
