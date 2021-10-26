@@ -5,11 +5,12 @@ from typing import Any, List, Optional
 
 from meilisearch import Client
 from meilisearch.errors import MeiliSearchApiError
-from rich.console import Console
+from rich.console import Console, Group
+from rich.panel import Panel
 from typer import Argument, Option, Typer
 
 from meilisearch_cli import documents, dump, index
-from meilisearch_cli._config import MASTER_KEY_HELP_MESSAGE, URL_HELP_MESSAGE
+from meilisearch_cli._config import MASTER_KEY_HELP_MESSAGE, PANEL_BORDER_COLOR, URL_HELP_MESSAGE
 from meilisearch_cli._helpers import create_client, create_panel, set_search_param
 
 console = Console()
@@ -142,7 +143,13 @@ def search(
                 search_results = client.index(index).search(query, search_params)
             else:
                 search_results = client.index(index).search(query)
-            panel = create_panel(search_results, title="Search Results")
+
+            hits_panel = create_panel(search_results["hits"], title="Hits", fit=False)
+            del search_results["hits"]
+            info_panel = create_panel(search_results, title="Information", fit=False)
+            panel_group = Group(info_panel, hits_panel)
+            panel = Panel(panel_group, title="Search Results", border_style=PANEL_BORDER_COLOR)
+
         console.print(panel)
     except MeiliSearchApiError as e:
         if e.error_code == "index_not_found":
