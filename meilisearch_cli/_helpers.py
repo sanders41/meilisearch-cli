@@ -6,6 +6,7 @@ from time import sleep
 from typing import Any, Callable
 
 from meilisearch import Client
+from meilisearch.errors import MeiliSearchApiError
 from meilisearch.index import Index
 from rich.console import Console
 from rich.panel import Panel
@@ -67,6 +68,21 @@ def create_panel(
         return Panel.fit(info, title=title, border_style=panel_border_color, padding=padding)
 
     return Panel(info, title=title, border_style=panel_border_color, padding=padding)
+
+
+def handle_index_meilisearch_api_error(error: MeiliSearchApiError, index_name: str) -> None:
+    console = Console()
+
+    if error.error_code == "index_already_exists":
+        console.print(f"Index [yellow bold]{index_name}[/yellow bold] already exists", style="red")
+    elif error.error_code == "index_not_found":
+        console.print(f"Index [yellow bold]{index_name}[/yellow bold] not found", style="red")
+    elif error.error_code == "primary_key_already_present":
+        console.print(
+            f"Index {index_name} already contains a primary key, cannot be reset", style="red"
+        )
+    else:
+        raise error
 
 
 def print_json_parse_error_message(console: Console, json_str: str) -> None:
