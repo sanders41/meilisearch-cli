@@ -2908,9 +2908,14 @@ def test_update_settings(
 
     index = client.create_index(index_uid)
     runner_result = test_runner.invoke(app, args)
+    out = runner_result.stdout
+
+    if not wait_flag:
+        update_id = get_update_id_from_output(out)
+        index.wait_for_pending_update(update_id)
+
     assert index.get_settings() == updated_settings
 
-    out = runner_result.stdout
     if wait_flag:
         assert f"displayedAttributes: {updated_settings['displayedAttributes']}" in out
         assert f"searchableAttributes: {updated_settings['searchableAttributes']}" in out
