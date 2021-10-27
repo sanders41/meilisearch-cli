@@ -23,7 +23,7 @@ def get_update_id_from_output(output):
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "'title':"), ("-w", "'title':")],
+    [(None, "updateId"), ("--wait", "title:"), ("-w", "title:")],
 )
 @pytest.mark.parametrize(
     "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
@@ -105,7 +105,7 @@ def test_add_documents_json_error(
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "'title':"), ("-w", "'title':")],
+    [(None, "updateId"), ("--wait", "title:"), ("-w", "title:")],
 )
 @pytest.mark.parametrize(
     "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
@@ -155,7 +155,7 @@ def test_add_documents_from_file_json(
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "'title':"), ("-w", "'title':")],
+    [(None, "updateId"), ("--wait", "title:"), ("-w", "title:")],
 )
 @pytest.mark.parametrize(
     "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
@@ -205,7 +205,7 @@ def test_add_documents_from_file_csv(
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "'title':"), ("-w", "'title':")],
+    [(None, "updateId"), ("--wait", "title:"), ("-w", "title:")],
 )
 @pytest.mark.parametrize(
     "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
@@ -301,7 +301,7 @@ def test_add_documents_from_file_invalid_type(index_uid, test_runner, tmp_path):
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "'title':"), ("-w", "'title':")],
+    [(None, "updateId"), ("--wait", "title:"), ("-w", "title:")],
 )
 @pytest.mark.parametrize(
     "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
@@ -916,8 +916,9 @@ def test_get_documents(
 
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
-    assert "'title': 'Pet Sematary'" in out
-    assert "'title': 'Us'" in out
+
+    assert "title: Pet Sematary" in out
+    assert "title: Us" in out
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
@@ -1068,8 +1069,8 @@ def test_get_indexes(use_env, base_url, master_key, test_runner, index_uid, monk
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
-    assert f"'uid': '{index_uid}'" in out
-    assert f"'uid': '{index2}'" in out
+    assert f"uid: {index_uid}" in out
+    assert f"uid: {index2}" in out
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
@@ -1429,9 +1430,7 @@ def test_health_no_url(test_runner):
     assert "MEILI_HTTP_ADDR" in out
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected", [(None, "updateId"), ("--wait", "['*']"), ("-w", "['*']")]
-)
+@pytest.mark.parametrize("wait_flag, expected", [(None, "updateId"), ("--wait", "*"), ("-w", "*")])
 @pytest.mark.parametrize("use_env", [True, False])
 def test_reset_displayed_attributes(
     use_env, wait_flag, expected, index_uid, base_url, master_key, test_runner, client, monkeypatch
@@ -1661,8 +1660,8 @@ def test_reset_filterable_attributes_error(mock_get, test_runner, index_uid):
     "wait_flag, expected",
     [
         (None, "updateId"),
-        ("--wait", "['words', 'typo', 'proximity', 'attribute', 'sort', 'exactness']"),
-        ("-w", "['words', 'typo', 'proximity', 'attribute', 'sort', 'exactness']"),
+        ("--wait", ["words", "typo", "proximity", "attribute", "sort", "exactness"]),
+        ("-w", ["words", "typo", "proximity", "attribute", "sort", "exactness"]),
     ],
 )
 @pytest.mark.parametrize("use_env", [True, False])
@@ -1691,7 +1690,8 @@ def test_reset_ranking_rules(
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
-    assert expected in out
+    for e in expected:
+        assert e in out
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
@@ -1728,9 +1728,7 @@ def test_reset_ranking_rules_error(mock_get, test_runner, index_uid):
         test_runner.invoke(app, ["index", "reset-ranking-rules", index_uid], catch_exceptions=False)
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected", [(None, "updateId"), ("--wait", "['*']"), ("-w", "['*']")]
-)
+@pytest.mark.parametrize("wait_flag, expected", [(None, "updateId"), ("--wait", "*"), ("-w", "*")])
 @pytest.mark.parametrize("use_env", [True, False])
 def test_reset_searchable_attributes(
     use_env, wait_flag, expected, index_uid, base_url, master_key, test_runner, client, monkeypatch
@@ -2158,8 +2156,8 @@ def test_search_error(mock_get, test_runner, index_uid):
     "wait_flag, expected",
     [
         (None, "updateId"),
-        ("--wait", "['genre', 'title']"),
-        ("-w", "['genre', 'title']"),
+        ("--wait", ["genre", "title"]),
+        ("-w", ["genre", "title"]),
     ],
 )
 @pytest.mark.parametrize("use_env", [True, False])
@@ -2196,7 +2194,8 @@ def test_update_displayed_attributes(
         client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
 
     assert index.get_displayed_attributes() == ["genre", "title"]
-    assert expected in out
+    for e in expected:
+        assert e in out
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
@@ -2402,7 +2401,7 @@ def test_update_documents_json_error(
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "'title':"), ("-w", "'title':")],
+    [(None, "updateId"), ("--wait", "title:"), ("-w", "title:")],
 )
 @pytest.mark.parametrize("use_env", [True, False])
 def test_update_documents_from_file_json(
@@ -2442,7 +2441,7 @@ def test_update_documents_from_file_json(
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "'title':"), ("-w", "'title':")],
+    [(None, "updateId"), ("--wait", "title:"), ("-w", "title:")],
 )
 @pytest.mark.parametrize("use_env", [True, False])
 def test_update_documents_from_file_csv(
@@ -2482,7 +2481,7 @@ def test_update_documents_from_file_csv(
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "'title':"), ("-w", "'title':")],
+    [(None, "updateId"), ("--wait", "title:"), ("-w", "title:")],
 )
 @pytest.mark.parametrize("use_env", [True, False])
 def test_update_documents_from_file_ndjson(
@@ -2568,7 +2567,7 @@ def test_update_documents_from_file_invalid_type(index_uid, test_runner, tmp_pat
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "'title':"), ("-w", "'title':")],
+    [(None, "updateId"), ("--wait", "title:"), ("-w", "title:")],
 )
 @pytest.mark.parametrize("batch_size", [None, 10, 1000])
 @pytest.mark.parametrize("use_env", [True, False])
@@ -2706,8 +2705,8 @@ def test_update_index_primary_key_exists(
     "wait_flag, expected",
     [
         (None, "updateId"),
-        ("--wait", "['sort', 'words']"),
-        ("-w", "['sort', 'words']"),
+        ("--wait", ["sort", "words"]),
+        ("-w", ["sort", "words"]),
     ],
 )
 @pytest.mark.parametrize("use_env", [True, False])
@@ -2746,7 +2745,8 @@ def test_update_ranking_rules(
         index.wait_for_pending_update(update_id)
 
     assert index.get_ranking_rules() == ["sort", "words"]
-    assert expected in out
+    for e in expected:
+        assert e in out
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
@@ -2772,8 +2772,8 @@ def test_update_ranking_rules_no_url_master_key(remove_env, index_uid, test_runn
     "wait_flag, expected",
     [
         (None, "updateId"),
-        ("--wait", "['genre', 'title']"),
-        ("-w", "['genre', 'title']"),
+        ("--wait", ["genre", "title"]),
+        ("-w", ["genre", "title"]),
     ],
 )
 @pytest.mark.parametrize("use_env", [True, False])
@@ -2811,7 +2811,8 @@ def test_update_searchable_attributes(
         index.wait_for_pending_update(update_id)
 
     assert index.get_searchable_attributes() == ["genre", "title"]
-    assert expected in out
+    for e in expected:
+        assert e in out
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
@@ -2973,8 +2974,8 @@ def test_update_settings_json_error(
     "wait_flag, expected",
     [
         (None, "updateId"),
-        ("--wait", "['genre', 'title']"),
-        ("-w", "['genre', 'title']"),
+        ("--wait", ["genre", "title"]),
+        ("-w", ["genre", "title"]),
     ],
 )
 @pytest.mark.parametrize("use_env", [True, False])
@@ -3012,7 +3013,8 @@ def test_update_sortable_attributes(
         index.wait_for_pending_update(update_id)
 
     assert index.get_sortable_attributes() == ["genre", "title"]
-    assert expected in out
+    for e in expected:
+        assert e in out
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
@@ -3042,8 +3044,8 @@ def test_update_sotrable_attributes_no_url_master_key(
     "wait_flag, expected",
     [
         (None, "updateId"),
-        ("--wait", "['a', 'the']"),
-        ("-w", "['a', 'the']"),
+        ("--wait", ["a", "the"]),
+        ("-w", ["a", "the"]),
     ],
 )
 @pytest.mark.parametrize("use_env", [True, False])
@@ -3081,7 +3083,8 @@ def test_update_stop_words(
         index.wait_for_pending_update(update_id)
 
     assert index.get_stop_words() == ["a", "the"]
-    assert expected in out
+    for e in expected:
+        assert e in out
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])

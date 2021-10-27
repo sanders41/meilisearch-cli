@@ -3,14 +3,13 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 from time import sleep
-from typing import Any, Callable
+from typing import Any, Callable, Generator
 
 from meilisearch import Client
 from meilisearch.errors import MeiliSearchApiError
 from meilisearch.index import Index
-from rich.console import Console
+from rich.console import Console, group
 from rich.panel import Panel
-from rich.pretty import Pretty
 
 from meilisearch_cli._config import PANEL_BORDER_COLOR
 
@@ -52,7 +51,16 @@ def create_panel(
     if isinstance(data, str):
         info = data
     elif isinstance(data, list):
-        info = Pretty(data) if data is not None else ""
+        if data:
+
+            @group()
+            def get_panels() -> Generator[Any, None, None]:
+                for d in data:  # type: ignore
+                    yield create_panel(d, title="", fit=False)
+
+            info = get_panels()
+        else:
+            info = "[]"
     else:
         info = ""
         if data == {}:
