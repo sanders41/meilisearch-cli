@@ -12,6 +12,7 @@ from meilisearch_cli._config import MASTER_KEY_HELP_MESSAGE, URL_HELP_MESSAGE, W
 from meilisearch_cli._helpers import (
     create_client,
     create_panel,
+    handle_index_meilisearch_api_error,
     print_json_parse_error_message,
     process_request,
 )
@@ -46,10 +47,7 @@ def create(
 
         console.print(panel)
     except MeiliSearchApiError as e:
-        if e.error_code == "index_already_exists":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] already exists", style="red")
-        else:
-            raise
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -75,10 +73,7 @@ def delete(
             )
         )
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -99,10 +94,7 @@ def get(
 
         console.print(panel)
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(e.message, style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -140,10 +132,7 @@ def get_primary_key(
 
         console.print(panel)
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -164,10 +153,7 @@ def get_stats(
 
         console.print(panel)
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -190,10 +176,7 @@ def get_all_update_status(
 
         console.print(panel)
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -214,10 +197,7 @@ def get_settings(
 
         console.print(panel)
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -241,10 +221,7 @@ def get_update_status(
 
         console.print(panel)
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -272,10 +249,7 @@ def reset_displayed_attributes(
                 "Reset Displayed Attributes",
             )
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -303,10 +277,7 @@ def reset_distinct_attribute(
                 "Reset Distinct Attribute",
             )
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -334,10 +305,7 @@ def reset_filterable_attributes(
                 "Reset Filterable Attributes",
             )
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -363,10 +331,7 @@ def reset_ranking_rules(
                 "Reset Ranking Rules",
             )
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -394,10 +359,7 @@ def reset_searchable_attributes(
                 "Reset Searchable Attributes",
             )
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -423,10 +385,7 @@ def reset_settings(
                 "Reset Settings",
             )
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -452,10 +411,7 @@ def reset_stop_words(
                 "Reset Stop Words",
             )
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -481,10 +437,7 @@ def reset_synonyms(
                 "Reset Synonyms",
             )
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -567,14 +520,7 @@ def update(
 
         console.print(index_display)
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        elif e.error_code == "primary_key_already_present":
-            console.print(
-                f"Index {index} already contains a primary key, cannot be reset", style="red"
-            )
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()

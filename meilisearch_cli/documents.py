@@ -13,6 +13,7 @@ from meilisearch_cli._config import MASTER_KEY_HELP_MESSAGE, URL_HELP_MESSAGE, W
 from meilisearch_cli._helpers import (
     create_client,
     create_panel,
+    handle_index_meilisearch_api_error,
     print_json_parse_error_message,
     process_request,
     validate_file_type_and_set_content_type,
@@ -220,10 +221,7 @@ def get(
 
         console.print(panel)
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -244,10 +242,7 @@ def get_all(
 
         console.print(panel)
     except MeiliSearchApiError as e:
-        if e.error_code == "index_not_found":
-            console.print(f"Index [yellow bold]{index}[/yellow bold] not found", style="red")
-        else:
-            raise e
+        handle_index_meilisearch_api_error(e, index)
 
 
 @app.command()
