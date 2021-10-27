@@ -54,3 +54,13 @@ to get information about the `add-documents` command run:
 ```sh
 meilisearch-cli add-documents --help
 ```
+
+## Example
+
+### Get Version
+
+![Get Version](https://github.com/sanders41/meilisearch-cli/raw/main/imgs/get-version.png)
+
+### Get Document
+
+![Get Document](https://github.com/sanders41/meilisearch-cli/raw/main/imgs/get-document.png)
