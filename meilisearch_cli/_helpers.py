@@ -56,7 +56,7 @@ def create_panel(
             @group()
             def get_panels() -> Generator[Any, None, None]:
                 for d in data:  # type: ignore
-                    yield create_panel(d, title="", fit=False)
+                    yield create_panel(d, title="", fit=False, panel_border_color="dodger_blue1")
 
             info = get_panels()
         else:
