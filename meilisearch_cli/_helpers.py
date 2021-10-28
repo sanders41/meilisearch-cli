@@ -93,7 +93,8 @@ def handle_index_meilisearch_api_error(error: MeiliSearchApiError, index_name: s
         raise error
 
 
-def print_json_parse_error_message(console: Console, json_str: str) -> None:
+def print_json_parse_error_message(json_str: str) -> None:
+    console = Console()
     console.print(f"Unable to parse [yellow bold]{json_str}[/yellow bold] as JSON", style="red")
 
 
@@ -102,7 +103,6 @@ def process_request(
     request_method: Callable,
     retrieve_method: Callable,
     wait: bool,
-    console: Console,
     title: str,
 ) -> None:
     update = request_method()
@@ -110,12 +110,12 @@ def process_request(
         status = False
 
         if not isinstance(update, list):
-            response = wait_for_update(index, update["updateId"], console)
+            response = wait_for_update(index, update["updateId"])
             if response:
                 status = True
         else:
             for u in update:
-                response = wait_for_update(index, u["updateId"], console)
+                response = wait_for_update(index, u["updateId"])
                 if response:
                     status = True
 
@@ -125,6 +125,7 @@ def process_request(
     else:
         panel = create_panel(update, title=title)
 
+    console = Console()
     console.print(panel)
 
 
@@ -135,7 +136,7 @@ def set_search_param(search_params: dict[str, Any], param: Any, param_name: str)
     return search_params
 
 
-def validate_file_type_and_set_content_type(console: Console, file_path: Path) -> str:
+def validate_file_type_and_set_content_type(file_path: Path) -> str:
     file_type = file_path.suffix
 
     if file_type == ".csv":
@@ -145,6 +146,7 @@ def validate_file_type_and_set_content_type(console: Console, file_path: Path) -
     elif file_type == ".ndjson":
         return "application/x-ndjson"
 
+    console = Console()
     console.print(
         f"[yellow bold]{file_type}[/yellow bold] files are not accepted. Only .json, .csv, and .ndjson are accepted",
         style="red",
@@ -152,11 +154,12 @@ def validate_file_type_and_set_content_type(console: Console, file_path: Path) -
     sys.exit()
 
 
-def wait_for_update(index: Index, update_id: int, console: Console) -> dict[str, Any] | None:
+def wait_for_update(index: Index, update_id: int) -> dict[str, Any] | None:
     while True:
         get_update = index.get_update_status(update_id)
 
         if get_update["status"] == "failed":
+            console = Console()
             console.print(get_update)
             return None
 

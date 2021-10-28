@@ -47,11 +47,10 @@ def add(
                 partial(client_index.add_documents, json.loads(documents), primary_key),
                 client_index.get_documents,
                 wait,
-                console,
                 "Add Documents Result",
             )
     except json.decoder.JSONDecodeError:
-        print_json_parse_error_message(console, documents)
+        print_json_parse_error_message(documents)
 
 
 @app.command()
@@ -75,7 +74,7 @@ def add_from_file(
 ) -> None:
     """Add documents to an index from a file."""
 
-    content_type = validate_file_type_and_set_content_type(console, file_path)
+    content_type = validate_file_type_and_set_content_type(file_path)
 
     with console.status("Adding documents..."):
         with open(file_path, "r") as f:
@@ -87,7 +86,6 @@ def add_from_file(
             partial(client_index.add_documents_raw, documents, primary_key, content_type),
             client_index.get_documents,
             wait,
-            console,
             "Add Documents Result",
         )
 
@@ -124,11 +122,10 @@ def add_in_batches(
                 ),
                 client_index.get_documents,
                 wait,
-                console,
                 "Add Documents Result",
             )
     except json.decoder.JSONDecodeError:
-        print_json_parse_error_message(console, documents)
+        print_json_parse_error_message(documents)
 
 
 @app.command()
@@ -149,7 +146,6 @@ def delete_all(
             partial(client_index.delete_all_documents),
             client_index.get_documents,
             wait,
-            console,
             "Delete Documents Result",
         )
 
@@ -173,7 +169,6 @@ def delete(
             partial(client_index.delete_document, document_id),
             client_index.get_documents,
             wait,
-            console,
             "Delete Document Result",
         )
 
@@ -197,7 +192,6 @@ def delete_multiple(
             partial(client_index.delete_documents, document_ids),
             client_index.get_documents,
             wait,
-            console,
             "Delete Documents Result",
         )
 
@@ -269,11 +263,10 @@ def update(
                 partial(client_index.update_documents, json.loads(documents), primary_key),
                 client_index.get_documents,
                 wait,
-                console,
                 "Update Documents",
             )
     except json.decoder.JSONDecodeError:
-        print_json_parse_error_message(console, documents)
+        print_json_parse_error_message(documents)
 
 
 @app.command()
@@ -297,7 +290,7 @@ def update_from_file(
 ) -> None:
     """Update documents in an index from a file."""
 
-    content_type = validate_file_type_and_set_content_type(console, file_path)
+    content_type = validate_file_type_and_set_content_type(file_path)
 
     with console.status("Adding documents..."):
         with open(file_path, "r") as f:
@@ -309,7 +302,6 @@ def update_from_file(
             partial(client_index.add_documents_raw, documents, primary_key, content_type),
             client_index.get_documents,
             wait,
-            console,
             "Update Documents",
         )
 
@@ -346,11 +338,10 @@ def update_in_batches(
                 ),
                 client_index.get_documents,
                 wait,
-                console,
                 "Update Documents",
             )
     except json.decoder.JSONDecodeError:
-        print_json_parse_error_message(console, documents)
+        print_json_parse_error_message(documents)
 
 
 if __name__ == "__main__":

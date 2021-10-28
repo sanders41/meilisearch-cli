@@ -245,7 +245,6 @@ def reset_displayed_attributes(
                 client_index.reset_displayed_attributes,
                 client_index.get_displayed_attributes,
                 wait,
-                console,
                 "Reset Displayed Attributes",
             )
     except MeiliSearchApiError as e:
@@ -273,7 +272,6 @@ def reset_distinct_attribute(
                 client_index.reset_distinct_attribute,
                 client_index.get_distinct_attribute,
                 wait,
-                console,
                 "Reset Distinct Attribute",
             )
     except MeiliSearchApiError as e:
@@ -301,7 +299,6 @@ def reset_filterable_attributes(
                 client_index.reset_filterable_attributes,
                 client_index.get_filterable_attributes,
                 wait,
-                console,
                 "Reset Filterable Attributes",
             )
     except MeiliSearchApiError as e:
@@ -327,7 +324,6 @@ def reset_ranking_rules(
                 client_index.reset_ranking_rules,
                 client_index.get_ranking_rules,
                 wait,
-                console,
                 "Reset Ranking Rules",
             )
     except MeiliSearchApiError as e:
@@ -355,7 +351,6 @@ def reset_searchable_attributes(
                 client_index.reset_searchable_attributes,
                 client_index.get_searchable_attributes,
                 wait,
-                console,
                 "Reset Searchable Attributes",
             )
     except MeiliSearchApiError as e:
@@ -381,7 +376,6 @@ def reset_settings(
                 client_index.reset_settings,
                 client_index.get_settings,
                 wait,
-                console,
                 "Reset Settings",
             )
     except MeiliSearchApiError as e:
@@ -407,7 +401,6 @@ def reset_stop_words(
                 client_index.reset_stop_words,
                 client_index.get_stop_words,
                 wait,
-                console,
                 "Reset Stop Words",
             )
     except MeiliSearchApiError as e:
@@ -433,7 +426,6 @@ def reset_synonyms(
                 client_index.reset_synonyms,
                 client_index.get_synonyms,
                 wait,
-                console,
                 "Reset Synonyms",
             )
     except MeiliSearchApiError as e:
@@ -461,7 +453,6 @@ def update_displayed_attributes(
             partial(client_index.update_displayed_attributes, displayed_attributes),
             client_index.get_displayed_attributes,
             wait,
-            console,
             "Update Displayed Attributes",
         )
 
@@ -487,7 +478,6 @@ def update_distinct_attribute(
             partial(client_index.update_distinct_attribute, distinct_attribute),
             client_index.get_distinct_attribute,
             wait,
-            console,
             "Update Distinct Attribute",
         )
 
@@ -542,7 +532,6 @@ def update_ranking_rules(
             partial(client_index.update_ranking_rules, ranking_rules),
             client_index.get_ranking_rules,
             wait,
-            console,
             "Update Ranking Rules",
         )
 
@@ -568,7 +557,6 @@ def update_searchable_attributes(
             partial(client_index.update_searchable_attributes, searchable_attributes),
             client_index.get_searchable_attributes,
             wait,
-            console,
             "Update Searchable Attributes",
         )
 
@@ -626,11 +614,10 @@ def update_settings(
                 partial(client_index.update_settings, settings),
                 client_index.get_settings,
                 wait,
-                console,
                 "Update Settings",
             )
     except json.decoder.JSONDecodeError:
-        print_json_parse_error_message(console, synonyms)
+        print_json_parse_error_message(synonyms)
 
 
 @app.command()
@@ -654,7 +641,6 @@ def update_sortable_attributes(
             partial(client_index.update_sortable_attributes, sortable_attributes),
             client_index.get_sortable_attributes,
             wait,
-            console,
             "Update Searchable Attributes",
         )
 
@@ -678,7 +664,6 @@ def update_stop_words(
             partial(client_index.update_stop_words, stop_words),
             client_index.get_stop_words,
             wait,
-            console,
             "Update Stop Words",
         )
 
@@ -705,11 +690,10 @@ def update_synonyms(
                 partial(client_index.update_synonyms, json.loads(synonyms)),
                 client_index.get_synonyms,
                 wait,
-                console,
                 "Update Synonyms",
             )
     except json.decoder.JSONDecodeError:
-        print_json_parse_error_message(console, synonyms)
+        print_json_parse_error_message(synonyms)
 
 
 if __name__ == "__main__":
