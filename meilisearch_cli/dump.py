@@ -9,7 +9,7 @@ from typer import Argument, Option, Typer
 from meilisearch_cli._config import MASTER_KEY_HELP_MESSAGE, URL_HELP_MESSAGE
 from meilisearch_cli._helpers import create_client, create_panel
 
-install()
+install(show_locals=True)
 console = Console()
 app = Typer()
 

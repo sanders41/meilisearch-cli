@@ -19,7 +19,7 @@ from meilisearch_cli._helpers import (
     set_search_param,
 )
 
-install()
+install(show_locals=True)
 console = Console()
 app = Typer()
 app.add_typer(documents.app, name="documents", help="Manage documents in an index.")
