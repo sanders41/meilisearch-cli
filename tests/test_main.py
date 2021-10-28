@@ -143,7 +143,7 @@ def test_add_documents_from_file_json(
         args.append("--master-key")
         args.append(master_key)
 
-    runner_result = test_runner.invoke(app, args)
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
     out = runner_result.stdout
 
     if not wait_flag:
