@@ -2257,9 +2257,12 @@ def test_update_distinct_attribute(
 
     index = client.create_index(index_uid)
     runner_result = test_runner.invoke(app, args)
-    assert index.get_distinct_attribute() == "title"
-
     out = runner_result.stdout
+
+    if not wait_flag:
+        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+
+    assert index.get_distinct_attribute() == "title"
     assert expected in out
 
 
@@ -2311,9 +2314,9 @@ def test_update_index(
     index = client.create_index(index_uid)
     assert index.primary_key is None
     runner_result = test_runner.invoke(app, args)
-    assert index.get_primary_key() == primary_key
-
     out = runner_result.stdout
+
+    assert index.get_primary_key() == primary_key
     assert f"'primary_key': '{primary_key}'" in out
 
 
