@@ -7,6 +7,7 @@ from meilisearch import Client
 from meilisearch.errors import MeiliSearchApiError
 from rich.console import Console, Group
 from rich.panel import Panel
+from rich.traceback import install
 from typer import Argument, Option, Typer
 
 from meilisearch_cli import documents, dump, index
@@ -18,6 +19,7 @@ from meilisearch_cli._helpers import (
     set_search_param,
 )
 
+install()
 console = Console()
 app = Typer()
 app.add_typer(documents.app, name="documents", help="Manage documents in an index.")

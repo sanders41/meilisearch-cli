@@ -7,6 +7,7 @@ from typing import List, Optional
 
 from meilisearch.errors import MeiliSearchApiError
 from rich.console import Console
+from rich.traceback import install
 from typer import Argument, Option, Typer
 
 from meilisearch_cli._config import MASTER_KEY_HELP_MESSAGE, URL_HELP_MESSAGE, WAIT_MESSAGE
@@ -19,6 +20,7 @@ from meilisearch_cli._helpers import (
     validate_file_type_and_set_content_type,
 )
 
+install()
 console = Console()
 app = Typer()
 
