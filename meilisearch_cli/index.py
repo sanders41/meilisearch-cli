@@ -17,7 +17,7 @@ from meilisearch_cli._helpers import (
     process_request,
 )
 
-install(show_locals=True)
+install()
 app = Typer()
 
 
