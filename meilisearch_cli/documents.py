@@ -19,7 +19,7 @@ from meilisearch_cli._helpers import (
     validate_file_type_and_set_content_type,
 )
 
-install(show_locals=True)
+install()
 app = Typer()
 
 

@@ -24,7 +24,7 @@ from meilisearch_cli._helpers import (
     set_search_param,
 )
 
-install(show_locals=True)
+install()
 app = Typer()
 app.add_typer(documents.app, name="documents", help="Manage documents in an index.")
 app.add_typer(dump.app, name="dump", help="Create and get status of dumps.")
