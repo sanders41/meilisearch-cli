@@ -97,7 +97,7 @@ def test_add_documents_json_error(
 ):
     args = ["documents", "add", index_uid, "test"]
 
-    runner_result = test_runner.invoke(app, args)
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
 
     out = runner_result.stdout
     assert "Unable to parse" in out

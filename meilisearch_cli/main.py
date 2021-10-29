@@ -5,13 +5,18 @@ from typing import Any, List, Optional
 
 from meilisearch import Client
 from meilisearch.errors import MeiliSearchApiError
-from rich.console import Console, Group
+from rich.console import Group
 from rich.panel import Panel
 from rich.traceback import install
 from typer import Argument, Option, Typer
 
 from meilisearch_cli import documents, dump, index
-from meilisearch_cli._config import MASTER_KEY_HELP_MESSAGE, PANEL_BORDER_COLOR, URL_HELP_MESSAGE
+from meilisearch_cli._config import (
+    MASTER_KEY_HELP_MESSAGE,
+    PANEL_BORDER_COLOR,
+    URL_HELP_MESSAGE,
+    console,
+)
 from meilisearch_cli._helpers import (
     create_client,
     create_panel,
@@ -20,7 +25,6 @@ from meilisearch_cli._helpers import (
 )
 
 install(show_locals=True)
-console = Console()
 app = Typer()
 app.add_typer(documents.app, name="documents", help="Manage documents in an index.")
 app.add_typer(dump.app, name="dump", help="Create and get status of dumps.")
@@ -83,8 +87,8 @@ def health(
 
     if not url:
         console.print(
-            "A value for [yellow bold]--url[/yellow bold] has to either be provied or available in the [yellow bold]MEILI_HTTP_ADDR[/yellow bold] environment variable",
-            style="red",
+            "A value for [error_highlight]--url[/] has to either be provied or available in the [error_highlight]MEILI_HTTP_ADDR[/] environment variable",
+            style="error",
         )
         sys.exit()
 
