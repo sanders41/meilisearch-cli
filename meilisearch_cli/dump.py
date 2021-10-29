@@ -2,15 +2,13 @@ from __future__ import annotations
 
 from typing import Optional
 
-from rich.console import Console
 from rich.traceback import install
 from typer import Argument, Option, Typer
 
-from meilisearch_cli._config import MASTER_KEY_HELP_MESSAGE, URL_HELP_MESSAGE
+from meilisearch_cli._config import MASTER_KEY_HELP_MESSAGE, URL_HELP_MESSAGE, console
 from meilisearch_cli._helpers import create_client, create_panel
 
 install(show_locals=True)
-console = Console()
 app = Typer()
 
 
