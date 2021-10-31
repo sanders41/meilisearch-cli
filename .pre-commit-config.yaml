@@ -21,7 +21,7 @@ repos:
     rev: v0.910-1
     hooks:
     - id: mypy
-      files: meilisearch_cli/
+      additional_dependencies: [types-requests]
   - repo: https://github.com/PyCQA/flake8
     rev: 4.0.1
     hooks:
