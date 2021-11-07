@@ -6,7 +6,7 @@ import pytest
 from meilisearch import Client
 from meilisearch.errors import MeiliSearchApiError
 from meilisearch.index import Index
-from requests import Response
+from requests.models import Response
 
 from meilisearch_cli.main import app
 
@@ -19,6 +19,32 @@ def get_update_id_from_output(output):
     update_id = re.search(r"\d+", output)
     if update_id:
         return update_id.group()
+
+
+@patch("requests.get")
+def test_docs(mock_get, test_runner):
+    mock_response_content = b"""
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url><loc>https://docs.meilisearch.com/</loc><lastmod>2021-10-06T00:00:00.000Z</lastmod><changefreq>daily</changefreq>
+  </url><url><loc>https://docs.meilisearch.com/create/how_to/</loc><lastmod>2021-06-21T00:00:00.000Z</lastmod><changefreq>daily</changefreq></url>
+  <url><loc>https://docs.meilisearch.com/create/how_to/aws.html</loc><lastmod>2021-10-28T00:00:00.000Z</lastmod><changefreq>daily</changefreq></url>
+  <url><loc>https://docs.meilisearch.com/create/how_to/digitalocean-droplet.html</loc><lastmod>2021-10-27T00:00:00.000Z</lastmod><changefreq>daily</changefreq></url>
+  <url><loc>https://docs.meilisearch.com/learn/</loc><lastmod>2021-10-05T00:00:00.000Z</lastmod><changefreq>daily</changefreq></url>
+  <url><loc>https://docs.meilisearch.com/learn/advanced/</loc><lastmod>2021-10-06T00:00:00.000Z</lastmod><changefreq>daily</changefreq></url>
+  <url><loc>https://docs.meilisearch.com/learn/contributing/</loc><lastmod>2021-05-04T00:00:00.000Z</lastmod><changefreq>daily</changefreq></url>\
+</urlset>
+"""
+    mock_response = Response()
+    mock_response.status_code = 200
+    mock_response._content = mock_response_content
+    mock_get.return_value = mock_response
+
+    expected = "Meilisearch Documentation                                                       \n├── Create                                                                      \n│   └── How To                                                                  \n│       ├── Aws                                                                 \n│       └── Digitalocean Droplet                                                \n└── Learn                                                                       \n    ├── Advanced                                                                \n    └── Contributing                                                            \n"
+    runner_result = test_runner.invoke(app, ["docs"])
+    out = runner_result.stdout
+
+    assert out == expected
 
 
 @pytest.mark.parametrize(

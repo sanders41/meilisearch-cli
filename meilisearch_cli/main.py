@@ -17,6 +17,7 @@ from meilisearch_cli._config import (
     URL_HELP_MESSAGE,
     console,
 )
+from meilisearch_cli._docs import build_docs_tree
 from meilisearch_cli._helpers import (
     create_client,
     create_panel,
@@ -32,15 +33,22 @@ app.add_typer(index.app, name="index", help="Manage indexes")
 
 
 @app.command()
+def docs() -> None:
+    """A tree of all documentation links. If supported by your terminal the links are clickable."""
+
+    console.print(build_docs_tree())
+
+
+@app.command()
 def api_docs_link() -> None:
-    """Gives a clickable link to the MeiliSearch API documenation."""
+    """Gives a clickable link to the MeiliSearch API documenation. This can be used in terminals that don't support links."""
 
     console.print("https://docs.meilisearch.com/reference/api/")
 
 
 @app.command()
 def docs_link() -> None:
-    """Gives a clickable link to the MeiliSearch documenation."""
+    """Gives a clickable link to the MeiliSearch documenation. This can be used in terminals that don't support links."""
 
     console.print("https://docs.meilisearch.com/")
 
