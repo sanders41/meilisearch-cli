@@ -64,3 +64,13 @@ meilisearch-cli add-documents --help
 ### Get Document
 
 ![Get Document](https://github.com/sanders41/meilisearch-cli/raw/main/imgs/get-document.png)
+
+### Documentation
+
+The MeiliSearch documentation sections can be displayed with clickable links to each section. The
+links are built based on the current state of the documentation and will automatically stay
+up-to-date with the latest documentation. To follow the links command + click on a Mac or
+control + click on Linux and Windows. Note that some terminals do not support clickable links.
+In this case the documentation tree will be displayed but not be clickable.
+
+![MeiliSearch Documentation](https://github.com/sanders41/meilisearch-cli/raw/main/imgs/docs.png)
