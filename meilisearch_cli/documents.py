@@ -9,7 +9,13 @@ from meilisearch.errors import MeiliSearchApiError
 from rich.traceback import install
 from typer import Argument, Option, Typer
 
-from meilisearch_cli._config import MASTER_KEY_HELP_MESSAGE, URL_HELP_MESSAGE, WAIT_MESSAGE, console
+from meilisearch_cli._config import (
+    MASTER_KEY_HELP_MESSAGE,
+    RAW_MESSAGE,
+    URL_HELP_MESSAGE,
+    WAIT_MESSAGE,
+    console,
+)
 from meilisearch_cli._helpers import (
     create_client,
     create_panel,
@@ -36,6 +42,7 @@ def add(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Add documents to an index."""
 
@@ -48,6 +55,7 @@ def add(
                 client_index.get_documents,
                 wait,
                 "Add Documents Result",
+                raw,
             )
     except json.decoder.JSONDecodeError:
         print_json_parse_error_message(documents)
@@ -71,6 +79,7 @@ def add_from_file(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Add documents to an index from a file."""
 
@@ -87,6 +96,7 @@ def add_from_file(
             client_index.get_documents,
             wait,
             "Add Documents Result",
+            raw,
         )
 
 
@@ -106,6 +116,7 @@ def add_in_batches(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Add documents to an index in batches."""
 
@@ -123,6 +134,7 @@ def add_in_batches(
                 client_index.get_documents,
                 wait,
                 "Add Documents Result",
+                raw,
             )
     except json.decoder.JSONDecodeError:
         print_json_parse_error_message(documents)
@@ -136,6 +148,7 @@ def delete_all(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Delete all documents from an index."""
 
@@ -147,6 +160,7 @@ def delete_all(
             client_index.get_documents,
             wait,
             "Delete Documents Result",
+            raw,
         )
 
 
@@ -159,6 +173,7 @@ def delete(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Delete a document from an index."""
 
@@ -170,6 +185,7 @@ def delete(
             client_index.get_documents,
             wait,
             "Delete Document Result",
+            raw,
         )
 
 
@@ -182,6 +198,7 @@ def delete_multiple(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Delete multiple documents from an index."""
 
@@ -193,6 +210,7 @@ def delete_multiple(
             client_index.get_documents,
             wait,
             "Delete Documents Result",
+            raw,
         )
 
 
@@ -204,6 +222,7 @@ def get(
     master_key: Optional[str] = Option(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Get a document from an index."""
 
@@ -211,9 +230,11 @@ def get(
     try:
         with console.status("Getting document..."):
             document = client.index(index).get_document(document_id)
-            panel = create_panel(document, title="Document")
-
-        console.print(panel)
+            if raw:
+                console.print_json(json.dumps(document))
+            else:
+                panel = create_panel(document, title="Document")
+                console.print(panel)
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
@@ -225,16 +246,18 @@ def get_all(
     master_key: Optional[str] = Option(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Get all documents from an index."""
-
     client = create_client(url, master_key)
     try:
         with console.status("Getting documents..."):
             status = client.index(index).get_documents()
-            panel = create_panel(status, title="Documents")
-
-        console.print(panel)
+            if raw:
+                console.print_json(json.dumps(status))
+            else:
+                panel = create_panel(status, title="Documents")
+                console.print(panel)
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
@@ -252,6 +275,7 @@ def update(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Update documents in an index."""
 
@@ -264,6 +288,7 @@ def update(
                 client_index.get_documents,
                 wait,
                 "Update Documents",
+                raw,
             )
     except json.decoder.JSONDecodeError:
         print_json_parse_error_message(documents)
@@ -287,6 +312,7 @@ def update_from_file(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Update documents in an index from a file."""
 
@@ -303,6 +329,7 @@ def update_from_file(
             client_index.get_documents,
             wait,
             "Update Documents",
+            raw,
         )
 
 
@@ -322,6 +349,7 @@ def update_in_batches(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Add documents to an index in batches."""
 
@@ -339,6 +367,7 @@ def update_in_batches(
                 client_index.get_documents,
                 wait,
                 "Update Documents",
+                raw,
             )
     except json.decoder.JSONDecodeError:
         print_json_parse_error_message(documents)

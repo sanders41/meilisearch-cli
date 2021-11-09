@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from time import sleep
@@ -101,6 +102,7 @@ def process_request(
     retrieve_method: Callable,
     wait: bool,
     title: str,
+    raw: bool,
 ) -> None:
     update = request_method()
     if wait:
@@ -118,11 +120,16 @@ def process_request(
 
         if status:
             response = retrieve_method()
-            panel = create_panel(response, title=title)
+            if raw:
+                console.print_json(json.dumps(response))
+            else:
+                panel = create_panel(response, title=title)
+                console.print(panel)
+    elif raw:
+        console.print_json(json.dumps(update))
     else:
         panel = create_panel(update, title=title)
-
-    console.print(panel)
+        console.print(panel)
 
 
 def set_search_param(search_params: dict[str, Any], param: Any, param_name: str) -> dict[str, Any]:

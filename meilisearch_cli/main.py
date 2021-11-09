@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from typing import Any, List, Optional
 
@@ -14,6 +15,7 @@ from meilisearch_cli import documents, dump, index
 from meilisearch_cli._config import (
     MASTER_KEY_HELP_MESSAGE,
     PANEL_BORDER_COLOR,
+    RAW_MESSAGE,
     URL_HELP_MESSAGE,
     console,
 )
@@ -59,15 +61,18 @@ def get_keys(
     master_key: Optional[str] = Option(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Gets the public and private keys"""
 
     client = create_client(url, master_key)
     with console.status("Getting keys..."):
         keys = client.get_keys()
-        panel = create_panel(keys, title="Keys")
-
-    console.print(panel)
+        if raw:
+            console.print_json(json.dumps(keys))
+        else:
+            panel = create_panel(keys, title="Keys")
+            console.print(panel)
 
 
 @app.command()
@@ -76,20 +81,24 @@ def get_version(
     master_key: Optional[str] = Option(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Gets the MeiliSearch version information."""
 
     client = create_client(url, master_key)
     with console.status("Getting version..."):
         version = client.get_version()
-        panel = create_panel(version, title="Version Information")
-
-    console.print(panel)
+        if raw:
+            console.print_json(json.dumps(version))
+        else:
+            panel = create_panel(version, title="Version Information")
+            console.print(panel)
 
 
 @app.command()
 def health(
     url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Checks the status of the server."""
 
@@ -103,9 +112,11 @@ def health(
     client = Client(url)
     with console.status("Getting server status..."):
         health = client.health()
-        panel = create_panel(health, title="Server Health")
-
-    console.print(panel)
+        if raw:
+            console.print_json(json.dumps(health))
+        else:
+            panel = create_panel(health, title="Server Health")
+            console.print(panel)
 
 
 @app.command()
@@ -139,6 +150,7 @@ def search(
     master_key: Optional[str] = Option(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Perform a search."""
 
@@ -163,13 +175,15 @@ def search(
             else:
                 search_results = client.index(index).search(query)
 
-            hits_panel = create_panel(search_results["hits"], title="Hits", fit=False)
-            del search_results["hits"]
-            info_panel = create_panel(search_results, title="Information", fit=False)
-            panel_group = Group(info_panel, hits_panel)
-            panel = Panel(panel_group, title="Search Results", border_style=PANEL_BORDER_COLOR)
-
-        console.print(panel)
+            if raw:
+                console.print_json(json.dumps(search_results))
+            else:
+                hits_panel = create_panel(search_results["hits"], title="Hits", fit=False)
+                del search_results["hits"]
+                info_panel = create_panel(search_results, title="Information", fit=False)
+                panel_group = Group(info_panel, hits_panel)
+                panel = Panel(panel_group, title="Search Results", border_style=PANEL_BORDER_COLOR)
+                console.print(panel)
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
