@@ -8,7 +8,13 @@ from meilisearch.errors import MeiliSearchApiError
 from rich.traceback import install
 from typer import Argument, Option, Typer
 
-from meilisearch_cli._config import MASTER_KEY_HELP_MESSAGE, URL_HELP_MESSAGE, WAIT_MESSAGE, console
+from meilisearch_cli._config import (
+    MASTER_KEY_HELP_MESSAGE,
+    RAW_MESSAGE,
+    URL_HELP_MESSAGE,
+    WAIT_MESSAGE,
+    console,
+)
 from meilisearch_cli._helpers import (
     create_client,
     create_panel,
@@ -29,6 +35,7 @@ def create(
     master_key: Optional[str] = Option(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Create an index."""
 
@@ -43,9 +50,11 @@ def create(
         index_dict = response.__dict__
         del index_dict["config"]
         del index_dict["http"]
-        panel = create_panel(index_dict, title="Index")
-
-        console.print(panel)
+        if raw:
+            console.print_json(json.dumps(index_dict))
+        else:
+            panel = create_panel(index_dict, title="Index")
+            console.print(panel)
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
@@ -83,6 +92,7 @@ def get(
     master_key: Optional[str] = Option(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Gets a single index."""
 
@@ -90,9 +100,11 @@ def get(
     try:
         with console.status("Getting index..."):
             returned_index = client.get_raw_index(index)
-            panel = create_panel(returned_index, title="Index")
-
-        console.print(panel)
+            if raw:
+                console.print_json(json.dumps(returned_index))
+            else:
+                panel = create_panel(returned_index, title="Index")
+                console.print(panel)
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
@@ -103,15 +115,18 @@ def get_all(
     master_key: Optional[str] = Option(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Get all indexes."""
 
     client = create_client(url, master_key)
     with console.status("Getting indexes..."):
         indexes = client.get_raw_indexes()
-        panel = create_panel(indexes, title="All Indexes")
-
-    console.print(panel)
+        if raw:
+            console.print_json(json.dumps(indexes))
+        else:
+            panel = create_panel(indexes, title="All Indexes")
+            console.print(panel)
 
 
 @app.command()
@@ -129,8 +144,7 @@ def get_primary_key(
         with console.status("Getting primary key..."):
             primary_key = client.index(index).get_primary_key()
             panel = create_panel(primary_key, title="Primary Key")
-
-        console.print(panel)
+            console.print(panel)
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
@@ -142,6 +156,7 @@ def get_stats(
     master_key: Optional[str] = Option(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Get the stats of an index."""
 
@@ -149,9 +164,11 @@ def get_stats(
     try:
         with console.status("Getting stats..."):
             settings = client.index(index).get_stats()
-            panel = create_panel(settings, title="Stats")
-
-        console.print(panel)
+            if raw:
+                console.print_json(json.dumps(settings))
+            else:
+                panel = create_panel(settings, title="Stats")
+                console.print(panel)
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
@@ -165,6 +182,7 @@ def get_all_update_status(
     master_key: Optional[str] = Option(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Get all update statuses of an index."""
 
@@ -172,9 +190,11 @@ def get_all_update_status(
     try:
         with console.status("Getting update status..."):
             status = client.index(index).get_all_update_status()
-            panel = create_panel(status, title="Update Status")
-
-        console.print(panel)
+            if raw:
+                console.print_json(json.dumps(status))
+            else:
+                panel = create_panel(status, title="Update Status")
+                console.print(panel)
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
@@ -186,6 +206,7 @@ def get_settings(
     master_key: Optional[str] = Option(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Get the settings of an index."""
 
@@ -193,9 +214,11 @@ def get_settings(
     try:
         with console.status("Getting settings..."):
             settings = client.index(index).get_settings()
-            panel = create_panel(settings, title="Settings")
-
-        console.print(panel)
+            if raw:
+                console.print_json(json.dumps(settings))
+            else:
+                panel = create_panel(settings, title="Settings")
+                console.print(panel)
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
@@ -210,6 +233,7 @@ def get_update_status(
     master_key: Optional[str] = Option(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Get the update status of an index."""
 
@@ -217,9 +241,11 @@ def get_update_status(
     try:
         with console.status("Getting update status..."):
             status = client.index(index).get_update_status(update_id)
-            panel = create_panel(status, title="Update Status")
-
-        console.print(panel)
+            if raw:
+                console.print_json(json.dumps(status))
+            else:
+                panel = create_panel(status, title="Update Status")
+                console.print(panel)
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
@@ -234,6 +260,7 @@ def reset_displayed_attributes(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Reset displayed attributes of an index."""
 
@@ -246,6 +273,7 @@ def reset_displayed_attributes(
                 client_index.get_displayed_attributes,
                 wait,
                 "Reset Displayed Attributes",
+                raw,
             )
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
@@ -261,6 +289,7 @@ def reset_distinct_attribute(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Reset distinct attribute of an index."""
 
@@ -273,6 +302,7 @@ def reset_distinct_attribute(
                 client_index.get_distinct_attribute,
                 wait,
                 "Reset Distinct Attribute",
+                raw,
             )
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
@@ -288,6 +318,7 @@ def reset_filterable_attributes(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Reset filterable attributes of an index."""
 
@@ -300,6 +331,7 @@ def reset_filterable_attributes(
                 client_index.get_filterable_attributes,
                 wait,
                 "Reset Filterable Attributes",
+                raw,
             )
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
@@ -313,6 +345,7 @@ def reset_ranking_rules(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Reset ranking rules of an index."""
 
@@ -325,6 +358,7 @@ def reset_ranking_rules(
                 client_index.get_ranking_rules,
                 wait,
                 "Reset Ranking Rules",
+                raw,
             )
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
@@ -340,6 +374,7 @@ def reset_searchable_attributes(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Reset searchable attributes of an index."""
 
@@ -352,6 +387,7 @@ def reset_searchable_attributes(
                 client_index.get_searchable_attributes,
                 wait,
                 "Reset Searchable Attributes",
+                raw,
             )
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
@@ -365,6 +401,7 @@ def reset_settings(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Reset all settings of an index."""
 
@@ -377,6 +414,7 @@ def reset_settings(
                 client_index.get_settings,
                 wait,
                 "Reset Settings",
+                raw,
             )
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
@@ -390,6 +428,7 @@ def reset_stop_words(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Reset stop words of an index."""
 
@@ -402,6 +441,7 @@ def reset_stop_words(
                 client_index.get_stop_words,
                 wait,
                 "Reset Stop Words",
+                raw,
             )
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
@@ -415,6 +455,7 @@ def reset_synonyms(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Reset synonyms of an index."""
 
@@ -427,6 +468,7 @@ def reset_synonyms(
                 client_index.get_synonyms,
                 wait,
                 "Reset Synonyms",
+                raw,
             )
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
@@ -443,6 +485,7 @@ def update_displayed_attributes(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Update the displayed attributes of an index."""
 
@@ -454,6 +497,7 @@ def update_displayed_attributes(
             client_index.get_displayed_attributes,
             wait,
             "Update Displayed Attributes",
+            raw,
         )
 
 
@@ -468,6 +512,7 @@ def update_distinct_attribute(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Update the distinct attributes of an index."""
 
@@ -479,6 +524,7 @@ def update_distinct_attribute(
             client_index.get_distinct_attribute,
             wait,
             "Update Distinct Attribute",
+            raw,
         )
 
 
@@ -492,23 +538,28 @@ def update(
     master_key: Optional[str] = Option(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Update an index."""
 
     client = create_client(url, master_key)
     try:
         with console.status("Updating index..."):
-            # Ignore type here because the meiliserach-python has the wrong type expected
+            # Ignore type here because the meiliserach-python has the wrong type expected.
+            # Fix coming in the next MeiliSearch Python release.
             response = client.index(index).update(primaryKey=primary_key)  # type: ignore
 
         index_display = {
             "uid": response.uid,
             "primary_key": response.primary_key,
-            "created_at": response.created_at,
-            "updated_at": response.updated_at,
+            "created_at": str(response.created_at),
+            "updated_at": str(response.updated_at),
         }
 
-        console.print(index_display)
+        if raw:
+            console.print_json(json.dumps(index_display))
+        else:
+            console.print(index_display)
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
@@ -522,6 +573,7 @@ def update_ranking_rules(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Update the ranking rules of an index."""
 
@@ -533,6 +585,7 @@ def update_ranking_rules(
             client_index.get_ranking_rules,
             wait,
             "Update Ranking Rules",
+            raw,
         )
 
 
@@ -547,6 +600,7 @@ def update_searchable_attributes(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Update the searchable attributes of an index."""
 
@@ -558,6 +612,7 @@ def update_searchable_attributes(
             client_index.get_searchable_attributes,
             wait,
             "Update Searchable Attributes",
+            raw,
         )
 
 
@@ -585,6 +640,7 @@ def update_settings(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Update the settings of an index."""
 
@@ -615,6 +671,7 @@ def update_settings(
                 client_index.get_settings,
                 wait,
                 "Update Settings",
+                raw,
             )
     except json.decoder.JSONDecodeError:
         print_json_parse_error_message(synonyms)
@@ -631,6 +688,7 @@ def update_sortable_attributes(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Update the sortable attributes of an index."""
 
@@ -642,6 +700,7 @@ def update_sortable_attributes(
             client_index.get_sortable_attributes,
             wait,
             "Update Searchable Attributes",
+            raw,
         )
 
 
@@ -654,6 +713,7 @@ def update_stop_words(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Update the stop words of an index."""
 
@@ -665,6 +725,7 @@ def update_stop_words(
             client_index.get_stop_words,
             wait,
             "Update Stop Words",
+            raw,
         )
 
 
@@ -679,6 +740,7 @@ def update_synonyms(
         None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
     ),
     wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
+    raw: bool = Option(False, help=RAW_MESSAGE),
 ) -> None:
     """Update the searchable attributes of an index."""
 
@@ -691,6 +753,7 @@ def update_synonyms(
                 client_index.get_synonyms,
                 wait,
                 "Update Synonyms",
+                raw,
             )
     except json.decoder.JSONDecodeError:
         print_json_parse_error_message(synonyms)
