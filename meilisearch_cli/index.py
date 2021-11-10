@@ -20,6 +20,7 @@ from meilisearch_cli._helpers import (
     create_panel,
     handle_index_meilisearch_api_error,
     print_json_parse_error_message,
+    print_panel_or_raw,
     process_request,
 )
 
@@ -50,11 +51,7 @@ def create(
         index_dict = response.__dict__
         del index_dict["config"]
         del index_dict["http"]
-        if raw:
-            console.print_json(json.dumps(index_dict))
-        else:
-            panel = create_panel(index_dict, title="Index")
-            console.print(panel)
+        print_panel_or_raw(raw, index_dict, "Index")
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
@@ -100,11 +97,7 @@ def get(
     try:
         with console.status("Getting index..."):
             returned_index = client.get_raw_index(index)
-            if raw:
-                console.print_json(json.dumps(returned_index))
-            else:
-                panel = create_panel(returned_index, title="Index")
-                console.print(panel)
+            print_panel_or_raw(raw, returned_index, "Index")
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
@@ -122,11 +115,7 @@ def get_all(
     client = create_client(url, master_key)
     with console.status("Getting indexes..."):
         indexes = client.get_raw_indexes()
-        if raw:
-            console.print_json(json.dumps(indexes))
-        else:
-            panel = create_panel(indexes, title="All Indexes")
-            console.print(panel)
+        print_panel_or_raw(raw, indexes, "All Indexes")
 
 
 @app.command()
@@ -164,11 +153,7 @@ def get_stats(
     try:
         with console.status("Getting stats..."):
             settings = client.index(index).get_stats()
-            if raw:
-                console.print_json(json.dumps(settings))
-            else:
-                panel = create_panel(settings, title="Stats")
-                console.print(panel)
+            print_panel_or_raw(raw, settings, "Stats")
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
@@ -190,11 +175,7 @@ def get_all_update_status(
     try:
         with console.status("Getting update status..."):
             status = client.index(index).get_all_update_status()
-            if raw:
-                console.print_json(json.dumps(status))
-            else:
-                panel = create_panel(status, title="Update Status")
-                console.print(panel)
+            print_panel_or_raw(raw, status, "Update Status")
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
@@ -214,11 +195,7 @@ def get_settings(
     try:
         with console.status("Getting settings..."):
             settings = client.index(index).get_settings()
-            if raw:
-                console.print_json(json.dumps(settings))
-            else:
-                panel = create_panel(settings, title="Settings")
-                console.print(panel)
+            print_panel_or_raw(raw, settings, "Settings")
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
@@ -241,11 +218,7 @@ def get_update_status(
     try:
         with console.status("Getting update status..."):
             status = client.index(index).get_update_status(update_id)
-            if raw:
-                console.print_json(json.dumps(status))
-            else:
-                panel = create_panel(status, title="Update Status")
-                console.print(panel)
+            print_panel_or_raw(raw, status, "Update Status")
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 

@@ -18,9 +18,9 @@ from meilisearch_cli._config import (
 )
 from meilisearch_cli._helpers import (
     create_client,
-    create_panel,
     handle_index_meilisearch_api_error,
     print_json_parse_error_message,
+    print_panel_or_raw,
     process_request,
     validate_file_type_and_set_content_type,
 )
@@ -230,11 +230,7 @@ def get(
     try:
         with console.status("Getting document..."):
             document = client.index(index).get_document(document_id)
-            if raw:
-                console.print_json(json.dumps(document))
-            else:
-                panel = create_panel(document, title="Document")
-                console.print(panel)
+            print_panel_or_raw(raw, document, "Document")
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
@@ -253,11 +249,7 @@ def get_all(
     try:
         with console.status("Getting documents..."):
             status = client.index(index).get_documents()
-            if raw:
-                console.print_json(json.dumps(status))
-            else:
-                panel = create_panel(status, title="Documents")
-                console.print(panel)
+            print_panel_or_raw(raw, status, "Documents")
     except MeiliSearchApiError as e:
         handle_index_meilisearch_api_error(e, index)
 
