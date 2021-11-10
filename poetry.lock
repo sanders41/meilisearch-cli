@@ -567,7 +567,7 @@ test = ["shellingham (>=1.3.0,<2.0.0)", "pytest (>=4.4.0,<5.4.0)", "pytest-cov (
 
 [[package]]
 name = "types-requests"
-version = "2.25.11"
+version = "2.25.12"
 description = "Typing stubs for requests"
 category = "dev"
 optional = false
@@ -629,7 +629,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "003f048f04e03fd62f929ccae171b098be0c27da2bd1d018a30ac3020adb362c"
+content-hash = "0648da88d70d9a546ad4374b2fbde7125c147a8316cf589dcfbfad291d6c4017"
 
 [metadata.files]
 atomicwrites = [
@@ -996,8 +996,8 @@ typer = [
     {file = "typer-0.4.0.tar.gz", hash = "sha256:63c3aeab0549750ffe40da79a1b524f60e08a2cbc3126c520ebf2eeaf507f5dd"},
 ]
 types-requests = [
-    {file = "types-requests-2.25.11.tar.gz", hash = "sha256:b279284e51f668e38ee12d9665e4d789089f532dc2a0be4a1508ca0efd98ba9e"},
-    {file = "types_requests-2.25.11-py3-none-any.whl", hash = "sha256:ba1d108d512e294b6080c37f6ae7cb2a2abf527560e2b671d1786c1fc46b541a"},
+    {file = "types-requests-2.25.12.tar.gz", hash = "sha256:055863c0aacf8f8f29cd2ca0d3320efdf39f28e71de68d327761751d2f62bb57"},
+    {file = "types_requests-2.25.12-py3-none-any.whl", hash = "sha256:441a0e5671a3813e69e39ae2369d8f45558dcb96eff0bac148806e4799304f3f"},
 ]
 typing-extensions = [
     {file = "typing_extensions-3.10.0.2-py2-none-any.whl", hash = "sha256:d8226d10bc02a29bcc81df19a26e56a9647f8b0a6d4a83924139f4a8b01f17b7"},
