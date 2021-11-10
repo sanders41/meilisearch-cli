@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import json
 from typing import Optional
 
 from rich.traceback import install
 from typer import Argument, Option, Typer
 
 from meilisearch_cli._config import MASTER_KEY_HELP_MESSAGE, RAW_MESSAGE, URL_HELP_MESSAGE, console
-from meilisearch_cli._helpers import create_client, create_panel
+from meilisearch_cli._helpers import create_client, print_panel_or_raw
 
 install()
 app = Typer()
@@ -26,11 +25,7 @@ def create(
     client = create_client(url, master_key)
     with console.status("Creating dump..."):
         response = client.create_dump()
-        if raw:
-            console.print_json(json.dumps(response))
-        else:
-            panel = create_panel(response, title="Dump")
-            console.print(panel)
+        print_panel_or_raw(raw, response, "Dump")
 
 
 @app.command()
@@ -49,11 +44,7 @@ def get_status(
     client = create_client(url, master_key)
     with console.status("Getting dump status..."):
         response = client.get_dump_status(update_id)
-        if raw:
-            console.print_json(json.dumps(response))
-        else:
-            panel = create_panel(response, title="Dump Status")
-            console.print(panel)
+        print_panel_or_raw(raw, response, "Dump Status")
 
 
 if __name__ == "__main__":

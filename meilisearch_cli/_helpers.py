@@ -96,6 +96,16 @@ def print_json_parse_error_message(json_str: str) -> None:
     console.print(f"Unable to parse [error_highlight]{json_str}[/] as JSON", style="error")
 
 
+def print_panel_or_raw(
+    raw: bool, data: dict[str, Any] | list[dict[str, Any]] | None, panel_title: str
+) -> None:
+    if raw:
+        console.print_json(json.dumps(data))
+    else:
+        panel = create_panel(data, title=panel_title)
+        console.print(panel)
+
+
 def process_request(
     index: Index,
     request_method: Callable,
@@ -120,16 +130,9 @@ def process_request(
 
         if status:
             response = retrieve_method()
-            if raw:
-                console.print_json(json.dumps(response))
-            else:
-                panel = create_panel(response, title=title)
-                console.print(panel)
-    elif raw:
-        console.print_json(json.dumps(update))
+            print_panel_or_raw(raw, response, title)
     else:
-        panel = create_panel(update, title=title)
-        console.print(panel)
+        print_panel_or_raw(raw, update, title)
 
 
 def set_search_param(search_params: dict[str, Any], param: Any, param_name: str) -> dict[str, Any]:

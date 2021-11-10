@@ -24,6 +24,7 @@ from meilisearch_cli._helpers import (
     create_client,
     create_panel,
     handle_index_meilisearch_api_error,
+    print_panel_or_raw,
     set_search_param,
 )
 
@@ -68,11 +69,7 @@ def get_keys(
     client = create_client(url, master_key)
     with console.status("Getting keys..."):
         keys = client.get_keys()
-        if raw:
-            console.print_json(json.dumps(keys))
-        else:
-            panel = create_panel(keys, title="Keys")
-            console.print(panel)
+        print_panel_or_raw(raw, keys, "Keys")
 
 
 @app.command()
@@ -88,11 +85,7 @@ def get_version(
     client = create_client(url, master_key)
     with console.status("Getting version..."):
         version = client.get_version()
-        if raw:
-            console.print_json(json.dumps(version))
-        else:
-            panel = create_panel(version, title="Version Information")
-            console.print(panel)
+        print_panel_or_raw(raw, version, "Version Information")
 
 
 @app.command()
@@ -112,11 +105,7 @@ def health(
     client = Client(url)
     with console.status("Getting server status..."):
         health = client.health()
-        if raw:
-            console.print_json(json.dumps(health))
-        else:
-            panel = create_panel(health, title="Server Health")
-            console.print(panel)
+        print_panel_or_raw(raw, health, "Server Health")
 
 
 @app.command()
