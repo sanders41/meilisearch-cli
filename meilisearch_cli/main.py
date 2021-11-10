@@ -13,10 +13,10 @@ from typer import Argument, Option, Typer
 
 from meilisearch_cli import documents, dump, index
 from meilisearch_cli._config import (
-    MASTER_KEY_HELP_MESSAGE,
+    MASTER_KEY_OPTION,
     PANEL_BORDER_COLOR,
-    RAW_MESSAGE,
-    URL_HELP_MESSAGE,
+    RAW_OPTION,
+    URL_OPTION,
     console,
 )
 from meilisearch_cli._docs import build_docs_tree
@@ -58,11 +58,9 @@ def docs_link() -> None:
 
 @app.command()
 def get_keys(
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Gets the public and private keys"""
 
@@ -74,11 +72,9 @@ def get_keys(
 
 @app.command()
 def get_version(
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Gets the MeiliSearch version information."""
 
@@ -90,8 +86,8 @@ def get_version(
 
 @app.command()
 def health(
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Checks the status of the server."""
 
@@ -135,11 +131,9 @@ def search(
     sort: Optional[List[str]] = Option(
         None, help="Sort search results according to the attributes"
     ),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Perform a search."""
 

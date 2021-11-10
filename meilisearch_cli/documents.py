@@ -9,13 +9,7 @@ from meilisearch.errors import MeiliSearchApiError
 from rich.traceback import install
 from typer import Argument, Option, Typer
 
-from meilisearch_cli._config import (
-    MASTER_KEY_HELP_MESSAGE,
-    RAW_MESSAGE,
-    URL_HELP_MESSAGE,
-    WAIT_MESSAGE,
-    console,
-)
+from meilisearch_cli._config import MASTER_KEY_OPTION, RAW_OPTION, URL_OPTION, WAIT_OPTION, console
 from meilisearch_cli._helpers import (
     create_client,
     handle_index_meilisearch_api_error,
@@ -37,12 +31,10 @@ def add(
         None,
         help="The primary key for the documents. Will be ignored if a primary key is already set",
     ),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Add documents to an index."""
 
@@ -74,12 +66,10 @@ def add_from_file(
         help="The primary key for the documents. Will be ignored if a primary key is already set",
     ),
     encoding: str = Option("utf-8", help="The encoding type for the file"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Add documents to an index from a file."""
 
@@ -111,12 +101,10 @@ def add_in_batches(
     batch_size: int = Option(
         1000, help="The number of documents that should be included in each batch."
     ),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Add documents to an index in batches."""
 
@@ -143,12 +131,10 @@ def add_in_batches(
 @app.command()
 def delete_all(
     index: str = Argument(..., help="The name of the index from which to delete the documents"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Delete all documents from an index."""
 
@@ -168,12 +154,10 @@ def delete_all(
 def delete(
     index: str = Argument(..., help="The name of the index from which to delete the document"),
     document_id: str = Argument(..., help="The ID for the document to delete"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Delete a document from an index."""
 
@@ -193,12 +177,10 @@ def delete(
 def delete_multiple(
     index: str = Argument(..., help="The name of the index from which to delete the documents"),
     document_ids: List[str] = Argument(..., help="The IDs for the documents to delete"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Delete multiple documents from an index."""
 
@@ -218,11 +200,9 @@ def delete_multiple(
 def get(
     index: str = Argument(..., help="The name of the index from which to retrieve the document"),
     document_id: str = Argument(..., help="The id of the document to retrieve"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Get a document from an index."""
 
@@ -238,11 +218,9 @@ def get(
 @app.command()
 def get_all(
     index: str = Argument(..., help="The name of the index from which to retrieve the documents"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Get all documents from an index."""
     client = create_client(url, master_key)
@@ -262,12 +240,10 @@ def update(
         None,
         help="The primary key for the documents. Will be ignored if a primary key is already set",
     ),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Update documents in an index."""
 
@@ -299,12 +275,10 @@ def update_from_file(
         help="The primary key for the documents. Will be ignored if a primary key is already set",
     ),
     encoding: str = Option("utf-8", help="The encoding type for the file"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Update documents in an index from a file."""
 
@@ -336,12 +310,10 @@ def update_in_batches(
     batch_size: int = Option(
         1000, help="The number of documents that should be included in each batch."
     ),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Add documents to an index in batches."""
 

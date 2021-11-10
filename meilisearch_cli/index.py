@@ -8,13 +8,7 @@ from meilisearch.errors import MeiliSearchApiError
 from rich.traceback import install
 from typer import Argument, Option, Typer
 
-from meilisearch_cli._config import (
-    MASTER_KEY_HELP_MESSAGE,
-    RAW_MESSAGE,
-    URL_HELP_MESSAGE,
-    WAIT_MESSAGE,
-    console,
-)
+from meilisearch_cli._config import MASTER_KEY_OPTION, RAW_OPTION, URL_OPTION, WAIT_OPTION, console
 from meilisearch_cli._helpers import (
     create_client,
     create_panel,
@@ -32,11 +26,9 @@ app = Typer()
 def create(
     index: str = Argument(..., help="The name of the index to create"),
     primary_key: Optional[str] = Option(None, help="The primary key of the index"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Create an index."""
 
@@ -59,10 +51,8 @@ def create(
 @app.command()
 def delete(
     index: str = Argument(..., help="The name of the index to delete"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
 ) -> None:
     """Delete an index."""
 
@@ -85,11 +75,9 @@ def delete(
 @app.command()
 def get(
     index: str = Argument(..., help="The name of the index to retrieve"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Gets a single index."""
 
@@ -104,11 +92,9 @@ def get(
 
 @app.command()
 def get_all(
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Get all indexes."""
 
@@ -121,10 +107,8 @@ def get_all(
 @app.command()
 def get_primary_key(
     index: str = Argument(..., help="The name of the index from which to retrieve the primary key"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
 ) -> None:
     """Get the primary key of an index."""
 
@@ -141,11 +125,9 @@ def get_primary_key(
 @app.command()
 def get_stats(
     index: str = Argument(..., help="The name of the index from which to retrieve the stats"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Get the stats of an index."""
 
@@ -163,11 +145,9 @@ def get_all_update_status(
     index: str = Argument(
         ..., help="The name of the index from which to retrieve the update status"
     ),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Get all update statuses of an index."""
 
@@ -183,11 +163,9 @@ def get_all_update_status(
 @app.command()
 def get_settings(
     index: str = Argument(..., help="The name of the index from which to retrieve the settings"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Get the settings of an index."""
 
@@ -206,11 +184,9 @@ def get_update_status(
         ..., help="The name of the index from which to retrieve the update status"
     ),
     update_id: int = Argument(..., help="The update ID for the update status"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Get the update status of an index."""
 
@@ -228,12 +204,10 @@ def reset_displayed_attributes(
     index: str = Argument(
         ..., help="The name of the index for which to reset the displayed attributes"
     ),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Reset displayed attributes of an index."""
 
@@ -257,12 +231,10 @@ def reset_distinct_attribute(
     index: str = Argument(
         ..., help="The name of the index for which to reset the distinct attribute"
     ),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Reset distinct attribute of an index."""
 
@@ -286,12 +258,10 @@ def reset_filterable_attributes(
     index: str = Argument(
         ..., help="The name of the index for which to reset the filterable attributes"
     ),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Reset filterable attributes of an index."""
 
@@ -313,12 +283,10 @@ def reset_filterable_attributes(
 @app.command()
 def reset_ranking_rules(
     index: str = Argument(..., help="The name of the index for which to reset the ranking rules"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Reset ranking rules of an index."""
 
@@ -342,12 +310,10 @@ def reset_searchable_attributes(
     index: str = Argument(
         ..., help="The name of the index for which to reset the searchable attributes"
     ),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Reset searchable attributes of an index."""
 
@@ -369,12 +335,10 @@ def reset_searchable_attributes(
 @app.command()
 def reset_settings(
     index: str = Argument(..., help="The name of the index for which to reset the settings"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Reset all settings of an index."""
 
@@ -396,12 +360,10 @@ def reset_settings(
 @app.command()
 def reset_stop_words(
     index: str = Argument(..., help="The name of the index for which to reset the stop words"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Reset stop words of an index."""
 
@@ -423,12 +385,10 @@ def reset_stop_words(
 @app.command()
 def reset_synonyms(
     index: str = Argument(..., help="The name of the index for which to reset the synonums"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Reset synonyms of an index."""
 
@@ -453,12 +413,10 @@ def update_displayed_attributes(
         ..., help="The name of the index for which to update the diplayed attributes"
     ),
     displayed_attributes: List[str] = Argument(..., help="The displayed attributes for the index"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Update the displayed attributes of an index."""
 
@@ -480,12 +438,10 @@ def update_distinct_attribute(
         ..., help="The name of the index for which to update the distinct attribute"
     ),
     distinct_attribute: str = Argument(..., help="The distinct attribute for the index"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Update the distinct attributes of an index."""
 
@@ -507,11 +463,9 @@ def update(
         ..., help="The name of the index for which the settings should be udpated"
     ),
     primary_key: Optional[str] = Option(None, help="The primary key of the index"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Update an index."""
 
@@ -541,12 +495,10 @@ def update(
 def update_ranking_rules(
     index: str = Argument(..., help="The name of the index for which to update the ranking rules"),
     ranking_rules: List[str] = Argument(..., help="A list of ranking rules"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Update the ranking rules of an index."""
 
@@ -568,12 +520,10 @@ def update_searchable_attributes(
         ..., help="The name of the index for which to update the searchable attributes"
     ),
     searchable_attributes: List[str] = Argument(..., help="A list of searchable attributes"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Update the searchable attributes of an index."""
 
@@ -608,12 +558,10 @@ def update_settings(
         None,
         help="Synonyms for the index. This should contain JSON passed as a string",
     ),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Update the settings of an index."""
 
@@ -656,12 +604,10 @@ def update_sortable_attributes(
         ..., help="The name of the index for which to update the sortable attributes"
     ),
     sortable_attributes: List[str] = Argument(..., help="A list of sortable attributes"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Update the sortable attributes of an index."""
 
@@ -681,12 +627,10 @@ def update_sortable_attributes(
 def update_stop_words(
     index: str = Argument(..., help="The name of the index for which to update the stop words"),
     stop_words: List[str] = Argument(..., help="A list of stop words"),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Update the stop words of an index."""
 
@@ -708,12 +652,10 @@ def update_synonyms(
     synonyms: str = Argument(
         ..., help="Synonyms for the index. This should contain JSON passed as a string"
     ),
-    url: Optional[str] = Option(None, envvar="MEILI_HTTP_ADDR", help=URL_HELP_MESSAGE),
-    master_key: Optional[str] = Option(
-        None, envvar="MEILI_MASTER_KEY", help=MASTER_KEY_HELP_MESSAGE
-    ),
-    wait: bool = Option(False, "--wait", "-w", help=WAIT_MESSAGE),
-    raw: bool = Option(False, help=RAW_MESSAGE),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
 ) -> None:
     """Update the searchable attributes of an index."""
 
