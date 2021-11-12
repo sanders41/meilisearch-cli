@@ -38,8 +38,8 @@ app.add_typer(index.app, name="index", help="Manage indexes")
 @app.command()
 def docs() -> None:
     """A tree of all documentation links. If supported by your terminal the links are clickable."""
-
-    console.print(build_docs_tree())
+    with console.status("Getting documentation links..."):
+        console.print(build_docs_tree())
 
 
 @app.command()
