@@ -462,7 +462,7 @@ def update(
     index: str = Argument(
         ..., help="The name of the index for which the settings should be udpated"
     ),
-    primary_key: Optional[str] = Option(None, help="The primary key of the index"),
+    primary_key: str = Argument(..., help="The primary key of the index"),
     url: Optional[str] = URL_OPTION,
     master_key: Optional[str] = MASTER_KEY_OPTION,
     raw: bool = RAW_OPTION,
@@ -472,9 +472,7 @@ def update(
     client = create_client(url, master_key)
     try:
         with console.status("Updating index..."):
-            # Ignore type here because the meiliserach-python has the wrong type expected.
-            # Fix coming in the next MeiliSearch Python release.
-            response = client.index(index).update(primaryKey=primary_key)  # type: ignore
+            response = client.index(index).update(primary_key=primary_key)
 
         index_display = {
             "uid": response.uid,
