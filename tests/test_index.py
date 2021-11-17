@@ -1384,7 +1384,7 @@ def test_update_index(
     monkeypatch,
 ):
     primary_key = "title"
-    args = ["index", "update", index_uid, "--primary-key", primary_key]
+    args = ["index", "update", index_uid, primary_key]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -1417,7 +1417,7 @@ def test_update_index_no_url_master_key(remove_env, index_uid, test_runner, monk
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["index", "update", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "update", index_uid, "test"])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -1429,7 +1429,7 @@ def test_update_index_no_url_master_key(remove_env, index_uid, test_runner, monk
 
 @pytest.mark.usefixtures("env_vars")
 def test_update_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["index", "update", index_uid, "--primary-key", "test"])
+    runner_result = test_runner.invoke(app, ["index", "update", index_uid, "test"])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1439,9 +1439,7 @@ def test_update_index_not_found_error(test_runner, index_uid):
 def test_update_index_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(
-            app, ["index", "update", index_uid, "--primary-key", "test"], catch_exceptions=False
-        )
+        test_runner.invoke(app, ["index", "update", index_uid, "test"], catch_exceptions=False)
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -1452,7 +1450,7 @@ def test_update_index_primary_key_exists(
     small_movies,
 ):
     primary_key = "title"
-    args = ["index", "update", index_uid, "--primary-key", primary_key]
+    args = ["index", "update", index_uid, primary_key]
 
     index = client.create_index(index_uid, {"primaryKey": "id"})
     update = index.add_documents(small_movies)

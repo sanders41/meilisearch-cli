@@ -462,7 +462,7 @@ def update(
     index: str = Argument(
         ..., help="The name of the index for which the settings should be udpated"
     ),
-    primary_key: Optional[str] = Option(None, help="The primary key of the index"),
+    primary_key: str = Argument(..., help="The primary key of the index"),
     url: Optional[str] = URL_OPTION,
     master_key: Optional[str] = MASTER_KEY_OPTION,
     raw: bool = RAW_OPTION,
