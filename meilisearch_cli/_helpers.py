@@ -80,13 +80,14 @@ def create_panel(
 
 
 def handle_index_meilisearch_api_error(error: MeiliSearchApiError, index_name: str) -> None:
-    if error.error_code == "index_already_exists":
+    if error.code == "index_already_exists":
         console.print(f"Index [error_highlight]{index_name}[/] already exists", style="error")
-    elif error.error_code == "index_not_found":
+    elif error.code == "index_not_found":
         console.print(f"Index [error_highlight]{index_name}[/] not found", style="error")
-    elif error.error_code == "primary_key_already_present":
+    elif error.code == "index_primary_key_already_exists":
         console.print(
-            f"Index {index_name} already contains a primary key, cannot be reset", style="error"
+            f"Index [error_highlight]{index_name}[/] already contains a primary key, cannot be reset",
+            style="error",
         )
     else:
         raise error

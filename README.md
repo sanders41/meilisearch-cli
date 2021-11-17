@@ -74,3 +74,11 @@ control + click on Linux and Windows. Note that some terminals do not support cl
 In this case the documentation tree will be displayed but not be clickable.
 
 ![MeiliSearch Documentation](https://github.com/sanders41/meilisearch-cli/raw/main/imgs/docs.png)
+
+## Compatibility with MeiliSearch
+
+This package only guarantees the compatibility with [version v0.24 of MeiliSearch](https://github.com/meilisearch/MeiliSearch/releases/tag/v0.24.0).
+
+## Contributing
+
+Contributions to this project are welcome. If you are interesting in contributing please see our [contributing guide](CONTRIBUTING.md)

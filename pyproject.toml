@@ -21,7 +21,7 @@ include = ["meilisearch_cli/py.typed"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-meilisearch = "0.16.2"
+meilisearch = "^0.17.0"
 typer = "0.4.0"
 rich = "10.13.0"
 requests = "2.26.0"

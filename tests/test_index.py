@@ -1449,11 +1449,14 @@ def test_update_index_primary_key_exists(
     index_uid,
     test_runner,
     client,
+    small_movies,
 ):
     primary_key = "title"
     args = ["index", "update", index_uid, "--primary-key", primary_key]
 
     index = client.create_index(index_uid, {"primaryKey": "id"})
+    update = index.add_documents(small_movies)
+    index.wait_for_pending_update(update["updateId"])
     assert index.primary_key == "id"
     runner_result = test_runner.invoke(app, args)
 

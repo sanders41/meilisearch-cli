@@ -472,9 +472,7 @@ def update(
     client = create_client(url, master_key)
     try:
         with console.status("Updating index..."):
-            # Ignore type here because the meiliserach-python has the wrong type expected.
-            # Fix coming in the next MeiliSearch Python release.
-            response = client.index(index).update(primaryKey=primary_key)  # type: ignore
+            response = client.index(index).update(primary_key=primary_key)
 
         index_display = {
             "uid": response.uid,
