@@ -27,7 +27,7 @@ def test_docs(mock_get, test_runner):
     mock_response._content = mock_response_content
     mock_get.return_value = mock_response
 
-    expected = "Meilisearch Documentation                                                       \n├── Create                                                                      \n│   └── How To                                                                  \n│       ├── Aws                                                                 \n│       └── Digitalocean Droplet                                                \n└── Learn                                                                       \n    ├── Advanced                                                                \n    └── Contributing                                                            \n\n"
+    expected = "Meilisearch Documentation                                                       \n├── Create                                                                      \n│   └── How To                                                                  \n│       ├── Aws                                                                 \n│       └── Digitalocean Droplet                                                \n└── Learn                                                                       \n    ├── Advanced                                                                \n    └── Contributing                                                            \n"
     runner_result = test_runner.invoke(app, ["docs"])
     out = runner_result.stdout
 
