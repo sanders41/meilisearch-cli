@@ -12,7 +12,7 @@ from meilisearch_cli._config import MASTER_KEY_OPTION, RAW_OPTION, URL_OPTION, W
 from meilisearch_cli._helpers import (
     create_client,
     create_panel,
-    handle_index_meilisearch_api_error,
+    handle_meilisearch_api_error,
     print_json_parse_error_message,
     print_panel_or_raw,
     process_request,
@@ -45,7 +45,7 @@ def create(
         del index_dict["http"]
         print_panel_or_raw(raw, index_dict, "Index")
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -69,7 +69,7 @@ def delete(
             )
         )
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -87,7 +87,7 @@ def get(
             returned_index = client.get_raw_index(index)
             print_panel_or_raw(raw, returned_index, "Index")
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -119,7 +119,7 @@ def get_primary_key(
             panel = create_panel(primary_key, title="Primary Key")
             console.print(panel)
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -137,7 +137,7 @@ def get_stats(
             settings = client.index(index).get_stats()
             print_panel_or_raw(raw, settings, "Stats")
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -157,7 +157,7 @@ def get_all_update_status(
             status = client.index(index).get_all_update_status()
             print_panel_or_raw(raw, status, "Update Status")
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -175,7 +175,7 @@ def get_settings(
             settings = client.index(index).get_settings()
             print_panel_or_raw(raw, settings, "Settings")
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -196,7 +196,7 @@ def get_update_status(
             status = client.index(index).get_update_status(update_id)
             print_panel_or_raw(raw, status, "Update Status")
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -223,7 +223,7 @@ def reset_displayed_attributes(
                 raw,
             )
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -250,7 +250,7 @@ def reset_distinct_attribute(
                 raw,
             )
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -277,7 +277,7 @@ def reset_filterable_attributes(
                 raw,
             )
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -302,7 +302,7 @@ def reset_ranking_rules(
                 raw,
             )
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -329,7 +329,7 @@ def reset_searchable_attributes(
                 raw,
             )
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -354,7 +354,7 @@ def reset_settings(
                 raw,
             )
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -379,7 +379,7 @@ def reset_stop_words(
                 raw,
             )
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -404,7 +404,7 @@ def reset_synonyms(
                 raw,
             )
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -486,7 +486,7 @@ def update(
         else:
             console.print(index_display)
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()

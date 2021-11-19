@@ -79,7 +79,7 @@ def create_panel(
     return Panel(info, title=title, border_style=panel_border_color, padding=padding)
 
 
-def handle_index_meilisearch_api_error(error: MeiliSearchApiError, index_name: str) -> None:
+def handle_meilisearch_api_error(error: MeiliSearchApiError, index_name: str) -> None:
     if error.code == "index_already_exists":
         console.print(f"Index [error_highlight]{index_name}[/] already exists", style="error")
     elif error.code == "index_not_found":
