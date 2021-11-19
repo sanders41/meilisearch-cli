@@ -23,7 +23,7 @@ from meilisearch_cli._docs import build_docs_tree
 from meilisearch_cli._helpers import (
     create_client,
     create_panel,
-    handle_index_meilisearch_api_error,
+    handle_meilisearch_api_error,
     print_panel_or_raw,
     set_search_param,
 )
@@ -168,7 +168,7 @@ def search(
                 panel = Panel(panel_group, title="Search Results", border_style=PANEL_BORDER_COLOR)
                 console.print(panel)
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 if __name__ == "__main__":

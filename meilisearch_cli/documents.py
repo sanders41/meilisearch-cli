@@ -12,7 +12,7 @@ from typer import Argument, Option, Typer
 from meilisearch_cli._config import MASTER_KEY_OPTION, RAW_OPTION, URL_OPTION, WAIT_OPTION, console
 from meilisearch_cli._helpers import (
     create_client,
-    handle_index_meilisearch_api_error,
+    handle_meilisearch_api_error,
     print_json_parse_error_message,
     print_panel_or_raw,
     process_request,
@@ -212,7 +212,7 @@ def get(
             document = client.index(index).get_document(document_id)
             print_panel_or_raw(raw, document, "Document")
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
@@ -229,7 +229,7 @@ def get_all(
             status = client.index(index).get_documents()
             print_panel_or_raw(raw, status, "Documents")
     except MeiliSearchApiError as e:
-        handle_index_meilisearch_api_error(e, index)
+        handle_meilisearch_api_error(e, index)
 
 
 @app.command()
