@@ -90,7 +90,7 @@ def handle_index_meilisearch_api_error(error: MeiliSearchApiError, index_name: s
             style="error",
         )
     else:
-        raise error
+        raise
 
 
 def print_json_parse_error_message(json_str: str) -> None:
