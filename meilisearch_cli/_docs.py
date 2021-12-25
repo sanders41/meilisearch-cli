@@ -31,7 +31,19 @@ def build_branches(tree: Tree, branch: str, link: str, depth: int) -> Tree:
             if depth == i + 1:
                 branches = [get_branch_name(x) for x in node.children if node.children]
                 if branch not in branches:
-                    node.add(f"[link={link}]{branch}[/link]")
+                    if i == 0:
+                        style = "medium_purple3"
+                        guide_style = "green"
+                    elif i == 1:
+                        style = "green"
+                        guide_style = "sky_blue2"
+                    elif i == 2:
+                        style = "sky_blue2"
+                        guide_style = "dodger_blue1"
+                    else:
+                        style = ""
+                        guide_style = ""
+                    node.add(f"[link={link}]{branch}[/link]", style=style, guide_style=guide_style)
                     return tree
             for child in node.children:
                 if child:
@@ -50,7 +62,10 @@ def build_tree(links: list[str]) -> Tree:
             if tree:
                 tree = build_branches(tree, formatted_item, link, i)
             elif i == 0:
-                tree = Tree(label=f"[link={link}]{formatted_item}[/link]")
+                tree = Tree(
+                    label=f"[link={link}]{formatted_item}[/link]",
+                    guide_style="medium_purple3",
+                )
     if not tree:
         raise TreeBuildError("Error building tree")
 
