@@ -19,7 +19,8 @@ def test_docs(mock_get, test_runner):
   <url><loc>https://docs.meilisearch.com/create/how_to/digitalocean-droplet.html</loc><lastmod>2021-10-27T00:00:00.000Z</lastmod><changefreq>daily</changefreq></url>
   <url><loc>https://docs.meilisearch.com/learn/</loc><lastmod>2021-10-05T00:00:00.000Z</lastmod><changefreq>daily</changefreq></url>
   <url><loc>https://docs.meilisearch.com/learn/advanced/</loc><lastmod>2021-10-06T00:00:00.000Z</lastmod><changefreq>daily</changefreq></url>
-  <url><loc>https://docs.meilisearch.com/learn/contributing/</loc><lastmod>2021-05-04T00:00:00.000Z</lastmod><changefreq>daily</changefreq></url>\
+  <url><loc>https://docs.meilisearch.com/learn/contributing/</loc><lastmod>2021-05-04T00:00:00.000Z</lastmod><changefreq>daily</changefreq></url>
+  <url><loc>https://docs.meilisearch.com/learn/contributing/another/level/down</loc><lastmod>2021-05-04T00:00:00.000Z</lastmod><changefreq>daily</changefreq></url>
 </urlset>
 """
     mock_response = Response()
@@ -27,11 +28,11 @@ def test_docs(mock_get, test_runner):
     mock_response._content = mock_response_content
     mock_get.return_value = mock_response
 
-    expected = "Meilisearch Documentation                                                       \n├── Create                                                                      \n│   └── How To                                                                  \n│       ├── Aws                                                                 \n│       └── Digitalocean Droplet                                                \n└── Learn                                                                       \n    ├── Advanced                                                                \n    └── Contributing                                                            \n"
+    expected = "Meilisearch Documentation                                                       \n├── Create                                                                      \n│   └── How To                                                                  \n│       ├── Aws                                                                 \n│       └── Digitalocean Droplet                                                \n└── Learn                                                                       \n    ├── Advanced                                                                \n    └── Contributing"
     runner_result = test_runner.invoke(app, ["docs"])
     out = runner_result.stdout
 
-    assert out == expected
+    assert expected in out
 
 
 def test_api_docs_link(test_runner):
