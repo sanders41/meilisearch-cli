@@ -114,7 +114,7 @@ def main(
         "--version",
         "-v",
         is_eager=True,
-        help="Show the installed weather command version",
+        help="Show the installed version",
     ),
 ) -> None:
     if version:
