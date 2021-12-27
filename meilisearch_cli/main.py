@@ -9,7 +9,7 @@ from meilisearch.errors import MeiliSearchApiError
 from rich.console import Group
 from rich.panel import Panel
 from rich.traceback import install
-from typer import Argument, Option, Typer
+from typer import Argument, Exit, Option, Typer, echo
 
 from meilisearch_cli import documents, dump, index
 from meilisearch_cli._config import (
@@ -29,6 +29,9 @@ from meilisearch_cli._helpers import (
 )
 
 install()
+
+__version__ = "0.8.0"
+
 app = Typer()
 app.add_typer(documents.app, name="documents", help="Manage documents in an index.")
 app.add_typer(dump.app, name="dump", help="Create and get status of dumps.")
@@ -104,6 +107,21 @@ def health(
         print_panel_or_raw(raw, health, "Server Health")
 
 
+@app.callback(invoke_without_command=True)
+def main(
+    version: Optional[bool] = Option(
+        None,
+        "--version",
+        "-v",
+        is_eager=True,
+        help="Show the installed version",
+    ),
+) -> None:
+    if version:
+        echo(__version__)
+        raise Exit()
+
+
 @app.command()
 def search(
     index: str = Argument(..., help="The name of the index from which to retrieve the settings"),
@@ -172,4 +190,4 @@ def search(
 
 
 if __name__ == "__main__":
-    raise SystemExit(app())
+    app()

@@ -1,11 +1,29 @@
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 from meilisearch.errors import MeiliSearchApiError
 from meilisearch.index import Index
 from requests.models import Response
+from tomlkit import parse
 
-from meilisearch_cli.main import app
+from meilisearch_cli.main import __version__, app
+
+
+def test_versions_match():
+    pyproject_file = Path().absolute() / "pyproject.toml"
+    with open(pyproject_file, "r") as f:
+        content = f.read()
+        data = parse(content)
+        pyproject_version = data["tool"]["poetry"]["version"]  # type: ignore
+    assert __version__ == pyproject_version
+
+
+@pytest.mark.parametrize("args", [["--version"], ["-v"]])
+def test_version(args, test_runner):
+    result = test_runner.invoke(app, args, catch_exceptions=False)
+    out = result.stdout
+    assert __version__ in out
 
 
 @patch("requests.get")
