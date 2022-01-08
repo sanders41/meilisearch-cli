@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import json
 import sys
+from datetime import datetime
 from typing import Any, List, Optional
 
-from meilisearch import Client
+from meilisearch.client import Client
 from meilisearch.errors import MeiliSearchApiError
 from rich.console import Group
 from rich.panel import Panel
@@ -60,6 +61,67 @@ def docs_link() -> None:
 
 
 @app.command()
+def create_key(
+    description: Optional[str] = Option(None, help="Description of the key"),
+    actions: Optional[List[str]] = Option(None, help="Actions the key can perform"),
+    indexes: Optional[List[str]] = Option(None, help="Indexes for which the key has access"),
+    expires_at: Optional[datetime] = Option(
+        None, help="The date the key should expire. If included the date should be in UTC time"
+    ),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
+) -> None:
+    """Create a new API key."""
+    if not description and not actions and not indexes and not expires_at:
+        console.print("No values included for creating the key", style="error")
+        sys.exit(1)
+
+    options = {
+        "description": description,
+        "actions": actions,
+        "indexes": indexes,
+        "expiresAt": expires_at.isoformat() if expires_at else None,
+    }
+    client = create_client(url, master_key)
+    with console.status("Creating key..."):
+        response = client.create_key(options)
+
+    print_panel_or_raw(raw, response, "Key")
+
+
+@app.command()
+def delete_key(
+    key: str = Argument(..., help="The name of the key to delete"),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
+) -> None:
+    """Delete an API key."""
+    client = create_client(url, master_key)
+    with console.status("Deleting key..."):
+        response = client.delete_key(key)
+
+    data = {"response": response.status_code}  # type: ignore
+    print_panel_or_raw(raw, data, "Key")
+
+
+@app.command()
+def get_key(
+    key: str = Argument(..., help="The name of the key to get"),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
+) -> None:
+    """Get an API key."""
+    client = create_client(url, master_key)
+    with console.status("Getting key..."):
+        response = client.get_key(key)
+
+    print_panel_or_raw(raw, response, "Key")
+
+
+@app.command()
 def get_keys(
     url: Optional[str] = URL_OPTION,
     master_key: Optional[str] = MASTER_KEY_OPTION,
@@ -71,6 +133,40 @@ def get_keys(
     with console.status("Getting keys..."):
         keys = client.get_keys()
         print_panel_or_raw(raw, keys, "Keys")
+
+
+@app.command()
+def update_key(
+    key: str = Argument(..., help="The name of the key to update"),
+    description: Optional[str] = Option(None, help="Description of the key"),
+    actions: Optional[List[str]] = Option(None, help="Actions the key can perform"),
+    indexes: Optional[List[str]] = Option(None, help="Indexes for which the key has access"),
+    expires_at: Optional[datetime] = Option(
+        None, help="The date the key should expire. If included the date should be in UTC time"
+    ),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    raw: bool = RAW_OPTION,
+) -> None:
+    """Update an API key."""
+    if not description and not actions and not indexes and not expires_at:
+        console.print("No values included for creating the key", style="error")
+        sys.exit(1)
+
+    options = {
+        "key": key,
+        "description": description,
+        "actions": actions,
+        "indexes": indexes,
+        "expiresAt": expires_at.isoformat() if expires_at else None,
+    }
+    client = create_client(url, master_key)
+    with console.status("Updating index..."):
+        # TODO: udpage_key is a typo in the meilisearch typo. WHen it is fixed it will need Updating
+        # here also.
+        response = client.udpate_key(key, options)
+
+    print_panel_or_raw(raw, response, "Key")
 
 
 @app.command()

@@ -12,7 +12,7 @@ from tests.utils import get_update_id_from_output
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "title"), ("-w", "title")],
+    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
 )
 @pytest.mark.parametrize(
     "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
@@ -54,7 +54,7 @@ def test_add_documents(
     out = runner_result.stdout
 
     if not wait_flag:
-        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
     assert client.index(index_uid).get_primary_key() == expected_primary_key
     assert expected in out
@@ -94,7 +94,7 @@ def test_add_documents_json_error(
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "title"), ("-w", "title")],
+    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
 )
 @pytest.mark.parametrize(
     "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
@@ -136,7 +136,7 @@ def test_add_documents_from_file_json(
     out = runner_result.stdout
 
     if not wait_flag:
-        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
     assert client.index(index_uid).get_primary_key() == expected_primary_key
     assert expected in out
@@ -144,7 +144,7 @@ def test_add_documents_from_file_json(
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "title"), ("-w", "title")],
+    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
 )
 @pytest.mark.parametrize(
     "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
@@ -186,7 +186,7 @@ def test_add_documents_from_file_csv(
     out = runner_result.stdout
 
     if not wait_flag:
-        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
     assert client.index(index_uid).get_primary_key() == expected_primary_key
     assert expected in out
@@ -194,7 +194,7 @@ def test_add_documents_from_file_csv(
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "title"), ("-w", "title")],
+    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
 )
 @pytest.mark.parametrize(
     "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
@@ -236,7 +236,7 @@ def test_add_documents_from_file_ndjson(
     out = runner_result.stdout
 
     if not wait_flag:
-        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
     assert client.index(index_uid).get_primary_key() == expected_primary_key
     assert expected in out
@@ -290,7 +290,7 @@ def test_add_documents_from_file_invalid_type(index_uid, test_runner, tmp_path):
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "title"), ("-w", "title")],
+    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
 )
 @pytest.mark.parametrize(
     "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
@@ -310,8 +310,10 @@ def test_add_documents_in_batches(
     test_runner,
     small_movies,
     monkeypatch,
-    client,
+    empty_index,
 ):
+    index = empty_index()
+
     args = ["documents", "add-in-batches", index_uid, json.dumps(small_movies)]
 
     if batch_size:
@@ -337,11 +339,10 @@ def test_add_documents_in_batches(
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
     out = runner_result.stdout
 
-    if not wait_flag:
-        for update_id in get_update_id_from_output(out):
-            client.index(index_uid).wait_for_pending_update(update_id)
+    for task in index.get_tasks()["results"]:
+        index.wait_for_task(task["uid"])
 
-    assert client.index(index_uid).get_primary_key() == expected_primary_key
+    assert index.get_primary_key() == expected_primary_key
     assert expected in out
 
 
@@ -383,7 +384,7 @@ def test_add_documents_in_batches_json_error(
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "[]"), ("-w", "[]")],
+    [(None, "uid"), ("--wait", "[]"), ("-w", "[]")],
 )
 @pytest.mark.parametrize("use_env", [True, False])
 def test_delete_all_documents(
@@ -399,7 +400,7 @@ def test_delete_all_documents(
     client,
 ):
     update = client.index(index_uid).add_documents(small_movies)
-    client.index(index_uid).wait_for_pending_update(update["updateId"])
+    client.index(index_uid).wait_for_task(update["uid"])
 
     args = ["documents", "delete-all", index_uid]
 
@@ -419,7 +420,7 @@ def test_delete_all_documents(
     out = runner_result.stdout
 
     if not wait_flag:
-        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
     assert client.index(index_uid).get_documents() == []
     assert expected in out
@@ -446,7 +447,7 @@ def test_delete_all_documents_no_url_master_key(remove_env, index_uid, test_runn
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "title"), ("-w", "title")],
+    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
 )
 @pytest.mark.parametrize("use_env", [True, False])
 def test_delete_document(
@@ -462,7 +463,7 @@ def test_delete_document(
     client,
 ):
     update = client.index(index_uid).add_documents(small_movies)
-    client.index(index_uid).wait_for_pending_update(update["updateId"])
+    client.index(index_uid).wait_for_task(update["uid"])
     documents = client.index(index_uid).get_documents()
     document_id = documents[0]["id"]
 
@@ -484,7 +485,7 @@ def test_delete_document(
     out = runner_result.stdout
 
     if not wait_flag:
-        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
     with pytest.raises(MeiliSearchApiError):
         client.index(index_uid).get_document(document_id)
@@ -513,7 +514,7 @@ def test_delete_document_no_url_master_key(remove_env, index_uid, test_runner, m
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "title"), ("-w", "title")],
+    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
 )
 @pytest.mark.parametrize("use_env", [True, False])
 def test_delete_documents(
@@ -529,7 +530,7 @@ def test_delete_documents(
     client,
 ):
     update = client.index(index_uid).add_documents(small_movies)
-    client.index(index_uid).wait_for_pending_update(update["updateId"])
+    client.index(index_uid).wait_for_task(update["uid"])
     documents = client.index(index_uid).get_documents()
     document_id_1 = documents[0]["id"]
     document_id_2 = documents[1]["id"]
@@ -552,7 +553,7 @@ def test_delete_documents(
     out = runner_result.stdout
 
     if not wait_flag:
-        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
     for document_id in [document_id_1, document_id_2]:
         with pytest.raises(MeiliSearchApiError):
@@ -585,7 +586,7 @@ def test_delete_documents_no_url_master_key(remove_env, index_uid, test_runner, 
 def test_get_all_update_status(
     use_env, raw, index_uid, base_url, master_key, test_runner, client, small_movies, monkeypatch
 ):
-    args = ["index", "get-all-update-status", index_uid]
+    args = ["index", "get-tasks", index_uid]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -599,16 +600,18 @@ def test_get_all_update_status(
     if raw:
         args.append("--raw")
 
-    client_index = client.create_index(index_uid)
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    client_index = client.get_index(index_uid)
     client_index.add_documents(small_movies)
     client_index.add_documents(small_movies)
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
 
-    assert len(client_index.get_all_update_status()) == 2
+    assert len(client_index.get_tasks()["results"]) == 3
 
     out = runner_result.stdout
     assert "status" in out
-    assert "updateId" in out
+    assert "uid" in out
     assert "type" in out
     assert "enqueuedAt" in out
 
@@ -626,7 +629,7 @@ def test_get_all_update_status_no_url_master_key(remove_env, index_uid, test_run
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["index", "get-all-update-status", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "get-tasks", index_uid])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -638,19 +641,17 @@ def test_get_all_update_status_no_url_master_key(remove_env, index_uid, test_run
 
 @pytest.mark.usefixtures("env_vars")
 def test_get_all_update_status_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["index", "get-all-update-status", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "get-tasks", index_uid])
     out = runner_result.stdout
     assert "not found" in out
 
 
 @pytest.mark.usefixtures("env_vars")
-@patch.object(Index, "get_all_update_status")
+@patch.object(Index, "get_tasks")
 def test_get_all_update_status_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(
-            app, ["index", "get-all-update-status", index_uid], catch_exceptions=False
-        )
+        test_runner.invoke(app, ["index", "get-tasks", index_uid], catch_exceptions=False)
 
 
 @pytest.mark.parametrize("use_env", [True, False])
@@ -658,9 +659,11 @@ def test_get_all_update_status_error(mock_get, test_runner, index_uid):
 def test_get_document(
     use_env, raw, index_uid, base_url, master_key, test_runner, client, small_movies, monkeypatch
 ):
-    client_index = client.create_index(index_uid)
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    client_index = client.get_index(index_uid)
     update = client_index.add_documents(small_movies)
-    client_index.wait_for_pending_update(update["updateId"])
+    client_index.wait_for_task(update["uid"])
     documents = client_index.get_documents()
 
     args = ["documents", "get", index_uid, documents[0]["id"]]
@@ -726,9 +729,11 @@ def test_get_document_error(mock_get, test_runner, index_uid):
 def test_get_documents(
     use_env, raw, index_uid, base_url, master_key, test_runner, client, small_movies, monkeypatch
 ):
-    client_index = client.create_index(index_uid)
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    client_index = client.get_index(index_uid)
     update = client_index.add_documents(small_movies)
-    client_index.wait_for_pending_update(update["updateId"])
+    client_index.wait_for_task(update["uid"])
 
     args = ["documents", "get-all", index_uid]
 
@@ -793,7 +798,7 @@ def test_get_documents_error(mock_get, test_runner, index_uid):
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "Some Title"), ("-w", "Some Title")],
+    [(None, "uid"), ("--wait", "Some Title"), ("-w", "Some Title")],
 )
 @pytest.mark.parametrize("raw", [True, False])
 @pytest.mark.parametrize("use_env", [True, False])
@@ -828,17 +833,17 @@ def test_update_documents(
         args.append("--raw")
 
     update = client.index(index_uid).add_documents(small_movies)
-    client.index(index_uid).wait_for_pending_update(update["updateId"])
+    client.index(index_uid).wait_for_task(update["uid"])
     documents = client.index(index_uid).get_documents()
     documents[0]["title"] = expected
     update = client.index(index_uid).update_documents([documents[0]])
-    client.index(index_uid).wait_for_pending_update(update["updateId"])
+    client.index(index_uid).wait_for_task(update["uid"])
 
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
     if not wait_flag:
-        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
     if wait_flag:
         assert expected not in out
@@ -884,7 +889,7 @@ def test_update_documents_json_error(
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "title"), ("-w", "title")],
+    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
 )
 @pytest.mark.parametrize("raw", [True, False])
 @pytest.mark.parametrize("use_env", [True, False])
@@ -922,7 +927,7 @@ def test_update_documents_from_file_json(
     out = runner_result.stdout
 
     if not wait_flag:
-        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
     assert expected in out
 
@@ -933,7 +938,7 @@ def test_update_documents_from_file_json(
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "title"), ("-w", "title")],
+    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
 )
 @pytest.mark.parametrize("use_env", [True, False])
 @pytest.mark.parametrize("raw", [True, False])
@@ -971,7 +976,7 @@ def test_update_documents_from_file_csv(
     out = runner_result.stdout
 
     if not wait_flag:
-        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
     assert expected in out
 
@@ -982,7 +987,7 @@ def test_update_documents_from_file_csv(
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "title"), ("-w", "title")],
+    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
 )
 @pytest.mark.parametrize("use_env", [True, False])
 @pytest.mark.parametrize("raw", [True, False])
@@ -1020,7 +1025,7 @@ def test_update_documents_from_file_ndjson(
     out = runner_result.stdout
 
     if not wait_flag:
-        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
     assert expected in out
 
@@ -1077,7 +1082,7 @@ def test_update_documents_from_file_invalid_type(index_uid, test_runner, tmp_pat
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
-    [(None, "updateId"), ("--wait", "title"), ("-w", "title")],
+    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
 )
 @pytest.mark.parametrize("batch_size", [None, 10, 1000])
 @pytest.mark.parametrize("use_env", [True, False])
@@ -1122,7 +1127,7 @@ def test_update_documents_in_batches(
 
     if not wait_flag:
         for update_id in get_update_id_from_output(out):
-            client.index(index_uid).wait_for_pending_update(update_id)
+            client.index(index_uid).wait_for_task(update_id)
 
     assert expected in out
 

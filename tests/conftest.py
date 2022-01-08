@@ -2,7 +2,7 @@ import csv
 import json
 
 import pytest
-from meilisearch import Client
+from meilisearch.client import Client
 from typer.testing import CliRunner
 
 
@@ -43,7 +43,9 @@ def client(base_url, master_key):
 @pytest.fixture
 def empty_index(client, index_uid):
     def index_maker(index_name=index_uid):
-        return client.create_index(uid=index_name)
+        response = client.create_index(uid=index_name)
+        client.wait_for_task(response["uid"])
+        return client.get_index(index_name)
 
     return index_maker
 
@@ -59,7 +61,8 @@ def clear_indexes(client):
     # Deletes all the indexes in the MeiliSearch instance.
     indexes = client.get_indexes()
     for index in indexes:
-        client.index(index.uid).delete()
+        response = client.index(index.uid).delete()
+        client.wait_for_task(response["uid"])
 
 
 @pytest.fixture(scope="session")
@@ -105,7 +108,7 @@ def index_with_documents(empty_index, small_movies, index_uid):
     def index_maker(index_name=index_uid, documents=small_movies):
         index = empty_index(index_name)
         response = index.add_documents(documents)
-        index.wait_for_pending_update(response["updateId"])
+        index.wait_for_task(response["uid"])
         return index
 
     return index_maker

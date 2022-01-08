@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 
@@ -8,6 +9,39 @@ from requests.models import Response
 from tomlkit import parse
 
 from meilisearch_cli.main import __version__, app
+
+
+@pytest.fixture
+def test_key(client):
+    key_info = {
+        "description": "test",
+        "actions": ["search"],
+        "indexes": ["movies"],
+        "expiresAt": None,
+    }
+
+    key = client.create_key(key_info)
+
+    yield key
+
+    try:
+        client.delete_key(key["key"])
+    except MeiliSearchApiError:
+        pass
+
+
+@pytest.fixture
+def test_key_info(client):
+    key_info = {"description": "test", "actions": ["search"], "indexes": ["movies"]}
+
+    yield key_info
+
+    try:
+        keys = client.get_keys()
+        key = next(x for x in keys["results"] if x["description"] == key_info["description"])
+        client.delete_key(key["key"])
+    except MeiliSearchApiError:
+        pass
 
 
 def test_versions_match():
@@ -65,6 +99,88 @@ def test_docs_link(test_runner):
     assert "https://docs.meilisearch.com/" in out
 
 
+@pytest.mark.parametrize(
+    "expires_at",
+    (
+        None,
+        (datetime.utcnow() + timedelta(days=2)).isoformat().split(".")[0],
+    ),
+)
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_create_key(expires_at, raw, test_key_info, test_runner):
+    args = [
+        "create-key",
+        "--description",
+        test_key_info["description"],
+        "--actions",
+        *test_key_info["actions"],
+        "--indexes",
+        *test_key_info["indexes"],
+    ]
+
+    expires_at_expected = expires_at if expires_at else "None"
+
+    if expires_at:
+        args.append("--expires-at")
+        args.append(expires_at)
+
+    if raw:
+        args.append("--raw")
+
+        if not expires_at:
+            expires_at_expected = "null"
+
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+    out = runner_result.stdout
+
+    assert test_key_info["description"] in out
+    for action in test_key_info["actions"]:
+        assert action in out
+    for index in test_key_info["indexes"]:
+        assert index in out
+
+    assert expires_at_expected in out
+
+    if raw:
+        assert "}" in out
+        assert "}" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_create_key_no_vals(test_runner):
+    runner_result = test_runner.invoke(app, "create-key", catch_exceptions=False)
+    out = runner_result.stdout
+
+    assert "No values" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_delete_key(test_key, test_runner, client):
+    args = [
+        "delete-key",
+        test_key["key"],
+    ]
+
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+    out = runner_result.stdout
+
+    assert "204" in out
+
+    with pytest.raises(MeiliSearchApiError):
+        client.get_key(test_key["key"])
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_get_key(test_key, test_runner):
+    args = ["get-key", test_key["key"]]
+
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+    out = runner_result.stdout
+
+    assert test_key["key"] in out
+
+
 @pytest.mark.parametrize("use_env", [True, False])
 @pytest.mark.parametrize("raw", [True, False])
 def test_get_keys(use_env, raw, base_url, master_key, test_runner, monkeypatch):
@@ -86,11 +202,76 @@ def test_get_keys(use_env, raw, base_url, master_key, test_runner, monkeypatch):
 
     out = runner_result.stdout
 
-    assert "public" in out
-    assert "private" in out
+    assert "search" in out
+    assert "*" in out
     if raw:
         assert "{" in out
         assert "}" in out
+
+
+@pytest.mark.parametrize(
+    "expires_at",
+    (
+        None,
+        (datetime.utcnow() + timedelta(days=2)).isoformat().split(".")[0],
+    ),
+)
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_update_key(raw, expires_at, test_key, test_runner):
+    update_key_info = {
+        "key": test_key["key"],
+        "description": "updated",
+        "actions": ["*"],
+        "indexes": ["*"],
+        "expiresAt": (datetime.utcnow() + timedelta(days=2)).isoformat().split(".")[0],
+    }
+
+    args = [
+        "update-key",
+        update_key_info["key"],
+        "--description",
+        update_key_info["description"],
+        "--actions",
+        *update_key_info["actions"],
+        "--indexes",
+        *update_key_info["indexes"],
+    ]
+
+    expires_at_expected = expires_at if expires_at else "None"
+
+    if expires_at:
+        args.append("--expires-at")
+        args.append(expires_at)
+
+    if raw:
+        args.append("--raw")
+
+        if not expires_at:
+            expires_at_expected = "null"
+
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+    out = runner_result.stdout
+
+    assert update_key_info["description"] in out
+    for action in update_key_info["actions"]:
+        assert action in out
+    for index in update_key_info["indexes"]:
+        assert index in out
+
+    assert expires_at_expected in out
+
+    if raw:
+        assert "}" in out
+        assert "}" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_update_key_no_vals(test_key, test_runner):
+    runner_result = test_runner.invoke(app, ["update-key", test_key["key"]], catch_exceptions=False)
+    out = runner_result.stdout
+
+    assert "No values" in out
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
@@ -221,7 +402,7 @@ def test_search_basic(
 
     index = client.index(index_uid)
     update = index.add_documents(small_movies)
-    index.wait_for_pending_update(update["updateId"])
+    index.wait_for_task(update["uid"])
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
@@ -288,7 +469,7 @@ def test_search_full(
         args.append(master_key)
 
     update = index.add_documents(small_movies)
-    index.wait_for_pending_update(update["updateId"])
+    index.wait_for_task(update["uid"])
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
 
     out = runner_result.stdout

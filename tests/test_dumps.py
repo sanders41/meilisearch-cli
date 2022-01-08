@@ -1,11 +1,29 @@
+import json
+import re
+from datetime import datetime
+from time import sleep
+
 import pytest
 
 from meilisearch_cli.main import app
 
 
+def wait_for_dump_creation(client, dump_uid, timeout_in_ms=10000, interval_in_ms=500):
+    start_time = datetime.now()
+    elapsed_time = 0
+    while elapsed_time < timeout_in_ms:
+        dump = client.get_dump_status(dump_uid)
+        if dump["status"] != "in_progress":
+            return
+        sleep(interval_in_ms / 1000)
+        time_delta = datetime.now() - start_time
+        elapsed_time = round(time_delta.seconds * 1000 + time_delta.microseconds / 1000)
+    raise TimeoutError
+
+
 @pytest.mark.parametrize("use_env", [True, False])
 @pytest.mark.parametrize("raw", [True, False])
-def test_create_dump(use_env, raw, test_runner, base_url, master_key, monkeypatch):
+def test_create_dump(use_env, raw, client, test_runner, base_url, master_key, monkeypatch):
     args = ["dump", "create"]
 
     if use_env:
@@ -20,8 +38,17 @@ def test_create_dump(use_env, raw, test_runner, base_url, master_key, monkeypatc
     if raw:
         args.append("--raw")
 
-    runner_result = test_runner.invoke(app, args)
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
     out = runner_result.stdout
+    if raw:
+        uid = json.loads(out)["uid"]
+    else:
+        uid_re = re.search(r"\d+-\d+", out)
+        if uid_re:
+            uid = uid_re.group()
+        else:
+            uid = None
+    wait_for_dump_creation(client, uid)
 
     assert "uid" in out
     assert "status" in out
@@ -70,6 +97,15 @@ def test_get_dump_status(use_env, raw, test_runner, base_url, master_key, client
 
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
+    if raw:
+        uid = json.loads(out)["uid"]
+    else:
+        uid_re = re.search(r"\d+-\d+", out)
+        if uid_re:
+            uid = uid_re.group()
+        else:
+            uid = None
+    wait_for_dump_creation(client, uid)
 
     assert "uid" in out
     assert "status" in out
