@@ -466,7 +466,7 @@ def update_distinct_attribute(
 @app.command()
 def update(
     index: str = Argument(
-        ..., help="The name of the index for which the settings should be udpated"
+        ..., help="The name of the index for which the settings should be updated"
     ),
     primary_key: str = Argument(..., help="The primary key of the index"),
     url: Optional[str] = URL_OPTION,

@@ -162,9 +162,7 @@ def update_key(
     }
     client = create_client(url, master_key)
     with console.status("Updating index..."):
-        # TODO: udpage_key is a typo in the meilisearch typo. WHen it is fixed it will need Updating
-        # here also.
-        response = client.udpate_key(key, options)
+        response = client.update_key(key, options)
 
     print_panel_or_raw(raw, response, "Key")
 
