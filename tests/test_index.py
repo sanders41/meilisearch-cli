@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from meilisearch import Client
+from meilisearch.client import Client
 from meilisearch.errors import MeiliSearchApiError
 from meilisearch.index import Index
 from requests.models import Response
@@ -33,7 +33,7 @@ def test_create_index(
     if raw:
         args.append("--raw")
 
-    runner_result = test_runner.invoke(app, args)
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
 
     result = client.get_index(index_uid)
     assert result.uid == index_uid
@@ -58,8 +58,9 @@ def test_create_index(
 
 @pytest.mark.usefixtures("env_vars")
 def test_create_index_exists_error(test_runner, client, index_uid):
-    client.create_index(index_uid)
-    runner_result = test_runner.invoke(app, ["index", "create", index_uid])
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    runner_result = test_runner.invoke(app, ["index", "create", index_uid], catch_exceptions=False)
     out = runner_result.stdout
     assert "already exists" in out
 
@@ -106,7 +107,8 @@ def test_delete_index(use_env, base_url, master_key, test_runner, index_uid, mon
         args.append("--master-key")
         args.append(master_key)
 
-    client.create_index(index_uid)
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
     assert len(client.get_indexes()) == 1
     runner_result = test_runner.invoke(app, args)
 
@@ -117,8 +119,8 @@ def test_delete_index(use_env, base_url, master_key, test_runner, index_uid, mon
 
 
 @pytest.mark.usefixtures("env_vars")
-def test_delete_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["index", "delete", index_uid])
+def test_delete_index_not_found_error(test_runner):
+    runner_result = test_runner.invoke(app, ["index", "delete", "bad"])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -167,7 +169,8 @@ def test_get_index(use_env, raw, base_url, master_key, test_runner, index_uid, m
     if raw:
         args.append("--raw")
 
-    client.create_index(index_uid)
+    result = client.create_index(index_uid)
+    client.wait_for_task(result["uid"])
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
@@ -232,9 +235,11 @@ def test_get_indexes(
     if raw:
         args.append("--raw")
 
-    client.create_index(index_uid)
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
     index2 = "test"
-    client.create_index(index2)
+    response = client.create_index(index2)
+    client.wait_for_task(response["uid"])
     assert len(client.get_indexes()) == 2
     runner_result = test_runner.invoke(app, args)
 
@@ -283,7 +288,8 @@ def test_get_primary_key(
         args.append(master_key)
 
     primary_key = "id"
-    client.create_index(index_uid, {"primaryKey": primary_key})
+    result = client.create_index(index_uid, {"primaryKey": primary_key})
+    client.wait_for_task(result["uid"])
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
@@ -343,7 +349,8 @@ def test_get_settings(
     if raw:
         args.append("--raw")
 
-    client.create_index(index_uid)
+    result = client.create_index(index_uid)
+    client.wait_for_task(result["uid"])
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
@@ -412,7 +419,8 @@ def test_get_stats(use_env, raw, index_uid, base_url, master_key, test_runner, c
     if raw:
         args.append("--raw")
 
-    client.create_index(index_uid)
+    result = client.create_index(index_uid)
+    client.wait_for_task(result["uid"])
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
@@ -459,10 +467,10 @@ def test_get_stats_error(mock_get, test_runner, index_uid):
 
 @pytest.mark.parametrize("use_env", [True, False])
 @pytest.mark.parametrize("raw", [True, False])
-def test_get_update_status(
+def test_get_task(
     use_env, raw, index_uid, base_url, master_key, test_runner, client, small_movies, monkeypatch
 ):
-    args = ["index", "get-update-status", index_uid]
+    args = ["index", "get-task", index_uid]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -476,14 +484,16 @@ def test_get_update_status(
     if raw:
         args.append("--raw")
 
-    client_index = client.create_index(index_uid)
-    update = client_index.add_documents(small_movies)
-    args.append(str(update["updateId"]))
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
+    update = index.add_documents(small_movies)
+    args.append(str(update["uid"]))
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
 
     out = runner_result.stdout
     assert "status" in out
-    assert "updateId" in out
+    assert "uid" in out
     assert "type" in out
     assert "enqueuedAt" in out
 
@@ -494,14 +504,14 @@ def test_get_update_status(
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
 @pytest.mark.usefixtures("env_vars")
-def test_get_update_status_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
+def test_get_task_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
     if remove_env == "all":
         monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
         monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
     else:
         monkeypatch.delenv(remove_env, raising=False)
 
-    runner_result = test_runner.invoke(app, ["index", "get-update-status", index_uid, "0"])
+    runner_result = test_runner.invoke(app, ["index", "get-task", index_uid, "0"])
     out = runner_result.stdout
 
     if remove_env == "all":
@@ -512,23 +522,21 @@ def test_get_update_status_no_url_master_key(remove_env, index_uid, test_runner,
 
 
 @pytest.mark.usefixtures("env_vars")
-def test_get_update_status_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["index", "get-update-status", index_uid, "0"])
+def test_get_task_index_not_found_error(test_runner, index_uid):
+    runner_result = test_runner.invoke(app, ["index", "get-task", index_uid, "0"])
     out = runner_result.stdout
     assert "not found" in out
 
 
 @pytest.mark.usefixtures("env_vars")
-@patch.object(Index, "get_update_status")
-def test_get_update_status_error(mock_get, test_runner, index_uid):
+@patch.object(Index, "get_task")
+def test_get_task_error(mock_get, test_runner, index_uid):
     mock_get.side_effect = MeiliSearchApiError("bad", Response())
     with pytest.raises(MeiliSearchApiError):
-        test_runner.invoke(
-            app, ["index", "get-update-status", index_uid, "0"], catch_exceptions=False
-        )
+        test_runner.invoke(app, ["index", "get-task", index_uid, "0"], catch_exceptions=False)
 
 
-@pytest.mark.parametrize("wait_flag, expected", [(None, "updateId"), ("--wait", "*"), ("-w", "*")])
+@pytest.mark.parametrize("wait_flag, expected", [(None, "uid"), ("--wait", "*"), ("-w", "*")])
 @pytest.mark.parametrize("use_env", [True, False])
 @pytest.mark.parametrize("raw", [True, False])
 def test_reset_displayed_attributes(
@@ -540,9 +548,10 @@ def test_reset_displayed_attributes(
     base_url,
     master_key,
     test_runner,
-    client,
+    empty_index,
     monkeypatch,
 ):
+    index = empty_index()
     args = ["index", "reset-displayed-attributes", index_uid]
 
     if wait_flag:
@@ -560,12 +569,10 @@ def test_reset_displayed_attributes(
     if raw:
         args.append("--raw")
 
-    index = client.index(index_uid)
-    update = index.update_displayed_attributes(["title", "genre"])
-    index.wait_for_pending_update(update["updateId"])
-
+    response = index.update_displayed_attributes(["title", "genre"])
+    index.wait_for_task(response["uid"])
     assert index.get_displayed_attributes() == ["title", "genre"]
-    runner_result = test_runner.invoke(app, args)
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
 
     out = runner_result.stdout
     assert expected in out
@@ -594,29 +601,35 @@ def test_reset_displayed_attributes_no_url_master_key(
 
 @pytest.mark.usefixtures("env_vars")
 def test_reset_displayed_attributes_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["index", "reset-displayed-attributes", index_uid])
+    runner_result = test_runner.invoke(
+        app, ["index", "reset-displayed-attributes", index_uid, "--wait"], catch_exceptions=False
+    )
     out = runner_result.stdout
     assert "not found" in out
 
 
 @pytest.mark.usefixtures("env_vars")
-@patch.object(Index, "get_update_status")
-def test_reset_displayed_attributes_failed_status(mock_get, test_runner, client, index_uid):
+@patch.object(Index, "wait_for_task")
+def test_reset_displayed_attributes_failed_status(mock_get, test_runner, index_uid, empty_index):
+    empty_index()
     mock_get.side_effect = [
         {
             "status": "failed",
-            "updateId": 0,
+            "uid": 0,
             "type": {"name": "ResetDisplayedAttributes", "number": 0},
+            "error": {
+                "code": "index_already_exists",
+            },
             "enqueuedAt": "2021-02-14T14:07:09.364505700Z",
         }
     ]
 
-    client.create_index(index_uid)
     runner_result = test_runner.invoke(
-        app, ["index", "reset-displayed-attributes", index_uid, "-w"]
+        app, ["index", "reset-displayed-attributes", index_uid, "-w"], catch_exceptions=False
     )
     out = runner_result.stdout
-    assert "'status': 'failed'" in out
+
+    assert "failed" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -629,7 +642,7 @@ def test_reset_displayed_attributes_error(mock_get, test_runner, index_uid):
         )
 
 
-@pytest.mark.parametrize("wait_flag, expected", [(None, "updateId"), ("--wait", ""), ("-w", "")])
+@pytest.mark.parametrize("wait_flag, expected", [(None, "uid"), ("--wait", ""), ("-w", "")])
 @pytest.mark.parametrize("use_env", [True, False])
 @pytest.mark.parametrize("raw", [True, False])
 def test_reset_distinct_attribute(
@@ -663,7 +676,7 @@ def test_reset_distinct_attribute(
 
     index = client.index(index_uid)
     update = index.update_distinct_attribute("title")
-    index.wait_for_pending_update(update["updateId"])
+    index.wait_for_task(update["uid"])
 
     assert index.get_distinct_attribute() == "title"
     runner_result = test_runner.invoke(app, args)
@@ -695,7 +708,9 @@ def test_reset_distinct_attribute_no_url_master_key(
 
 @pytest.mark.usefixtures("env_vars")
 def test_reset_distinct_attribute_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["index", "reset-distinct-attribute", index_uid])
+    runner_result = test_runner.invoke(
+        app, ["index", "reset-distinct-attribute", index_uid, "-w"], catch_exceptions=False
+    )
     out = runner_result.stdout
     assert "not found" in out
 
@@ -710,9 +725,7 @@ def test_reset_distinct_attribute_error(mock_get, test_runner, index_uid):
         )
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected", [(None, "updateId"), ("--wait", "[]"), ("-w", "[]")]
-)
+@pytest.mark.parametrize("wait_flag, expected", [(None, "uid"), ("--wait", "[]"), ("-w", "[]")])
 @pytest.mark.parametrize("use_env", [True, False])
 @pytest.mark.parametrize("raw", [True, False])
 def test_reset_filterable_attributes(
@@ -746,7 +759,7 @@ def test_reset_filterable_attributes(
 
     index = client.index(index_uid)
     update = index.update_displayed_attributes(["title", "genre"])
-    index.wait_for_pending_update(update["updateId"])
+    index.wait_for_task(update["uid"])
 
     assert index.get_displayed_attributes() == ["title", "genre"]
     runner_result = test_runner.invoke(app, args)
@@ -778,7 +791,9 @@ def test_reset_filterable_attributes_no_url_master_key(
 
 @pytest.mark.usefixtures("env_vars")
 def test_reset_filterable_attributes_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["index", "reset-filterable-attributes", index_uid])
+    runner_result = test_runner.invoke(
+        app, ["index", "reset-filterable-attributes", index_uid, "-w"]
+    )
     out = runner_result.stdout
     assert "not found" in out
 
@@ -796,7 +811,7 @@ def test_reset_filterable_attributes_error(mock_get, test_runner, index_uid):
 @pytest.mark.parametrize(
     "wait_flag, expected",
     [
-        (None, "updateId"),
+        (None, "uid"),
         ("--wait", ["words", "typo", "proximity", "attribute", "sort", "exactness"]),
         ("-w", ["words", "typo", "proximity", "attribute", "sort", "exactness"]),
     ],
@@ -834,7 +849,7 @@ def test_reset_ranking_rules(
 
     index = client.index(index_uid)
     update = index.update_displayed_attributes(["sort", "words"])
-    index.wait_for_pending_update(update["updateId"])
+    index.wait_for_task(update["uid"])
 
     assert index.get_displayed_attributes() == ["sort", "words"]
     runner_result = test_runner.invoke(app, args)
@@ -865,7 +880,9 @@ def test_reset_ranking_rules_no_url_master_key(remove_env, index_uid, test_runne
 
 @pytest.mark.usefixtures("env_vars")
 def test_reset_ranking_rules_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["index", "reset-ranking-rules", index_uid])
+    runner_result = test_runner.invoke(
+        app, ["index", "reset-ranking-rules", index_uid, "-w"], catch_exceptions=False
+    )
     out = runner_result.stdout
     assert "not found" in out
 
@@ -878,7 +895,7 @@ def test_reset_ranking_rules_error(mock_get, test_runner, index_uid):
         test_runner.invoke(app, ["index", "reset-ranking-rules", index_uid], catch_exceptions=False)
 
 
-@pytest.mark.parametrize("wait_flag, expected", [(None, "updateId"), ("--wait", "*"), ("-w", "*")])
+@pytest.mark.parametrize("wait_flag, expected", [(None, "uid"), ("--wait", "*"), ("-w", "*")])
 @pytest.mark.parametrize("use_env", [True, False])
 @pytest.mark.parametrize("raw", [True, False])
 def test_reset_searchable_attributes(
@@ -912,7 +929,7 @@ def test_reset_searchable_attributes(
 
     index = client.index(index_uid)
     update = index.update_displayed_attributes(["title", "genre"])
-    index.wait_for_pending_update(update["updateId"])
+    index.wait_for_task(update["uid"])
 
     assert index.get_displayed_attributes() == ["title", "genre"]
     runner_result = test_runner.invoke(app, args)
@@ -944,7 +961,9 @@ def test_reset_searchable_attributes_no_url_master_key(
 
 @pytest.mark.usefixtures("env_vars")
 def test_reset_searchable_attributes_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["index", "reset-searchable-attributes", index_uid])
+    runner_result = test_runner.invoke(
+        app, ["index", "reset-searchable-attributes", index_uid, "-w"]
+    )
     out = runner_result.stdout
     assert "not found" in out
 
@@ -995,7 +1014,7 @@ def test_reset_settings(
         "distinctAttribute": "title",
     }
     update = index.update_settings(updated_settings)
-    index.wait_for_pending_update(update["updateId"])
+    index.wait_for_task(update["uid"])
     assert index.get_settings() == updated_settings
 
     runner_result = test_runner.invoke(app, args)
@@ -1025,7 +1044,7 @@ def test_reset_settings(
         else:
             assert "None" in out
     else:
-        assert "updateId" in out
+        assert "uid" in out
 
     if raw:
         assert "{" in out
@@ -1053,7 +1072,7 @@ def test_reset_settings_no_url_master_key(remove_env, index_uid, test_runner, mo
 
 @pytest.mark.usefixtures("env_vars")
 def test_reset_settings_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["index", "reset-settings", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-settings", index_uid, "-w"])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1066,9 +1085,7 @@ def test_reset_settings_error(mock_get, test_runner, index_uid):
         test_runner.invoke(app, ["index", "reset-settings", index_uid], catch_exceptions=False)
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected", [(None, "updateId"), ("--wait", "[]"), ("-w", "[]")]
-)
+@pytest.mark.parametrize("wait_flag, expected", [(None, "uid"), ("--wait", "[]"), ("-w", "[]")])
 @pytest.mark.parametrize("use_env", [True, False])
 @pytest.mark.parametrize("raw", [True, False])
 def test_reset_stop_words(
@@ -1102,7 +1119,7 @@ def test_reset_stop_words(
 
     index = client.index(index_uid)
     update = index.update_stop_words(["a", "the"])
-    index.wait_for_pending_update(update["updateId"])
+    index.wait_for_task(update["uid"])
 
     assert index.get_stop_words() == ["a", "the"]
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
@@ -1132,7 +1149,7 @@ def test_reset_stop_words_no_url_master_key(remove_env, index_uid, test_runner, 
 
 @pytest.mark.usefixtures("env_vars")
 def test_reset_stop_words_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["index", "reset-stop-words", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-stop-words", index_uid, "-w"])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1145,9 +1162,7 @@ def test_reset_stop_words_error(mock_get, test_runner, index_uid):
         test_runner.invoke(app, ["index", "reset-stop-words", index_uid], catch_exceptions=False)
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected", [(None, "updateId"), ("--wait", "{}"), ("-w", "{}")]
-)
+@pytest.mark.parametrize("wait_flag, expected", [(None, "uid"), ("--wait", "{}"), ("-w", "{}")])
 @pytest.mark.parametrize("use_env", [True, False])
 @pytest.mark.parametrize("raw", [True, False])
 def test_reset_synonyms(
@@ -1181,7 +1196,7 @@ def test_reset_synonyms(
 
     index = client.index(index_uid)
     update = index.update_synonyms({"logan": ["marval", "wolverine"]})
-    index.wait_for_pending_update(update["updateId"])
+    index.wait_for_task(update["uid"])
 
     assert index.get_synonyms() == {"logan": ["marval", "wolverine"]}
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
@@ -1211,7 +1226,7 @@ def test_reset_syonyms_no_url_master_key(remove_env, index_uid, test_runner, mon
 
 @pytest.mark.usefixtures("env_vars")
 def test_reset_synonyms_index_not_found_error(test_runner, index_uid):
-    runner_result = test_runner.invoke(app, ["index", "reset-synonyms", index_uid])
+    runner_result = test_runner.invoke(app, ["index", "reset-synonyms", index_uid, "-w"])
     out = runner_result.stdout
     assert "not found" in out
 
@@ -1227,7 +1242,7 @@ def test_reset_synonyms_error(mock_get, test_runner, index_uid):
 @pytest.mark.parametrize(
     "wait_flag, expected",
     [
-        (None, "updateId"),
+        (None, "uid"),
         ("--wait", ["genre", "title"]),
         ("-w", ["genre", "title"]),
     ],
@@ -1263,12 +1278,14 @@ def test_update_displayed_attributes(
     if raw:
         args.append("--raw")
 
-    index = client.create_index(index_uid)
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
     if not wait_flag:
-        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
     assert index.get_displayed_attributes() == ["genre", "title"]
     for e in expected:
@@ -1301,7 +1318,7 @@ def test_update_displayed_attributes_no_url_master_key(
 @pytest.mark.parametrize(
     "wait_flag, expected",
     [
-        (None, "updateId"),
+        (None, "uid"),
         ("--wait", "title"),
         ("-w", "title"),
     ],
@@ -1337,12 +1354,14 @@ def test_update_distinct_attribute(
     if raw:
         args.append("--raw")
 
-    index = client.create_index(index_uid)
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
     if not wait_flag:
-        client.index(index_uid).wait_for_pending_update(get_update_id_from_output(out))
+        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
     assert index.get_distinct_attribute() == "title"
     assert expected in out
@@ -1398,7 +1417,9 @@ def test_update_index(
     if raw:
         args.append("--raw")
 
-    index = client.create_index(index_uid)
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
     assert index.primary_key is None
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
     out = runner_result.stdout
@@ -1452,20 +1473,22 @@ def test_update_index_primary_key_exists(
     primary_key = "title"
     args = ["index", "update", index_uid, primary_key]
 
-    index = client.create_index(index_uid, {"primaryKey": "id"})
+    response = client.create_index(index_uid, {"primaryKey": "id"})
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
     update = index.add_documents(small_movies)
-    index.wait_for_pending_update(update["updateId"])
+    index.wait_for_task(update["uid"])
     assert index.primary_key == "id"
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
-    assert "cannot be reset" in out
+    assert "error" in out
 
 
 @pytest.mark.parametrize(
     "wait_flag, expected",
     [
-        (None, "updateId"),
+        (None, "uid"),
         ("--wait", ["sort", "words"]),
         ("-w", ["sort", "words"]),
     ],
@@ -1501,14 +1524,16 @@ def test_update_ranking_rules(
     if raw:
         args.append("--raw")
 
-    index = client.create_index(index_uid)
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
 
     if not wait_flag:
         update_id = get_update_id_from_output(out)
-        index.wait_for_pending_update(update_id)
+        index.wait_for_task(update_id)
 
     assert index.get_ranking_rules() == ["sort", "words"]
     for e in expected:
@@ -1537,7 +1562,7 @@ def test_update_ranking_rules_no_url_master_key(remove_env, index_uid, test_runn
 @pytest.mark.parametrize(
     "wait_flag, expected",
     [
-        (None, "updateId"),
+        (None, "uid"),
         ("--wait", ["genre", "title"]),
         ("-w", ["genre", "title"]),
     ],
@@ -1573,13 +1598,15 @@ def test_update_searchable_attributes(
     if raw:
         args.append("--raw")
 
-    index = client.create_index(index_uid)
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
     if not wait_flag:
         update_id = get_update_id_from_output(out)
-        index.wait_for_pending_update(update_id)
+        index.wait_for_task(update_id)
 
     assert index.get_searchable_attributes() == ["genre", "title"]
     for e in expected:
@@ -1683,13 +1710,15 @@ def test_update_settings(
     if raw:
         args.append("--raw")
 
-    index = client.create_index(index_uid)
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
     if not wait_flag:
         update_id = get_update_id_from_output(out)
-        index.wait_for_pending_update(update_id)
+        index.wait_for_task(update_id)
 
     assert index.get_settings() == updated_settings
 
@@ -1720,7 +1749,7 @@ def test_update_settings(
         assert "distinctAttribute" in out
         assert updated_settings["distinctAttribute"] in out
     else:
-        assert "updateId" in out
+        assert "uid" in out
 
     if raw:
         assert "{" in out
@@ -1770,7 +1799,7 @@ def test_update_settings_json_error(
 @pytest.mark.parametrize(
     "wait_flag, expected",
     [
-        (None, "updateId"),
+        (None, "uid"),
         ("--wait", ["genre", "title"]),
         ("-w", ["genre", "title"]),
     ],
@@ -1806,13 +1835,15 @@ def test_update_sortable_attributes(
     if raw:
         args.append("--raw")
 
-    index = client.create_index(index_uid)
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
     if not wait_flag:
         update_id = get_update_id_from_output(out)
-        index.wait_for_pending_update(update_id)
+        index.wait_for_task(update_id)
 
     assert index.get_sortable_attributes() == ["genre", "title"]
     for e in expected:
@@ -1845,7 +1876,7 @@ def test_update_sotrable_attributes_no_url_master_key(
 @pytest.mark.parametrize(
     "wait_flag, expected",
     [
-        (None, "updateId"),
+        (None, "uid"),
         ("--wait", ["a", "the"]),
         ("-w", ["a", "the"]),
     ],
@@ -1881,13 +1912,15 @@ def test_update_stop_words(
     if raw:
         args.append("--raw")
 
-    index = client.create_index(index_uid)
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
     if not wait_flag:
         update_id = get_update_id_from_output(out)
-        index.wait_for_pending_update(update_id)
+        index.wait_for_task(update_id)
 
     assert index.get_stop_words() == ["a", "the"]
     for e in expected:
@@ -1916,7 +1949,7 @@ def test_update_stop_words_no_url_master_key(remove_env, index_uid, test_runner,
 @pytest.mark.parametrize(
     "wait_flag, expected",
     [
-        (None, "updateId"),
+        (None, "uid"),
         ("--wait", "logan"),
         ("-w", "logan"),
     ],
@@ -1952,13 +1985,15 @@ def test_update_synonyms(
     if raw:
         args.append("--raw")
 
-    index = client.create_index(index_uid)
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
     out = runner_result.stdout
 
     if not wait_flag:
         update_id = get_update_id_from_output(out)
-        index.wait_for_pending_update(update_id)
+        index.wait_for_task(update_id)
 
     assert index.get_synonyms() == {"logan": ["marvel", "wolverine"]}
     assert expected in out

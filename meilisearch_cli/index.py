@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from functools import partial
 from typing import Any, List, Optional
 
@@ -10,6 +11,7 @@ from typer import Argument, Option, Typer
 
 from meilisearch_cli._config import MASTER_KEY_OPTION, RAW_OPTION, URL_OPTION, WAIT_OPTION, console
 from meilisearch_cli._helpers import (
+    check_index_status,
     create_client,
     create_panel,
     handle_meilisearch_api_error,
@@ -40,7 +42,11 @@ def create(
             else:
                 response = client.create_index(index)
 
-        index_dict = response.__dict__
+            client.wait_for_task(response["uid"])
+            check_index_status(client.config, index, response["uid"])
+
+        client_index = client.get_index(index)
+        index_dict = client_index.__dict__
         del index_dict["config"]
         del index_dict["http"]
         print_panel_or_raw(raw, index_dict, "Index")
@@ -60,8 +66,8 @@ def delete(
     try:
         with console.status("Deleting the index..."):
             response = client.index(index).delete()
+            check_index_status(client.config, index, response["uid"])
 
-        response.raise_for_status()
         console.print(
             create_panel(
                 f"Index {index} successfully deleted",
@@ -141,7 +147,7 @@ def get_stats(
 
 
 @app.command()
-def get_all_update_status(
+def get_tasks(
     index: str = Argument(
         ..., help="The name of the index from which to retrieve the update status"
     ),
@@ -154,7 +160,7 @@ def get_all_update_status(
     client = create_client(url, master_key)
     try:
         with console.status("Getting update status..."):
-            status = client.index(index).get_all_update_status()
+            status = client.index(index).get_tasks()
             print_panel_or_raw(raw, status, "Update Status")
     except MeiliSearchApiError as e:
         handle_meilisearch_api_error(e, index)
@@ -179,7 +185,7 @@ def get_settings(
 
 
 @app.command()
-def get_update_status(
+def get_task(
     index: str = Argument(
         ..., help="The name of the index from which to retrieve the update status"
     ),
@@ -193,7 +199,7 @@ def get_update_status(
     client = create_client(url, master_key)
     try:
         with console.status("Getting update status..."):
-            status = client.index(index).get_update_status(update_id)
+            status = client.index(index).get_task(update_id)
             print_panel_or_raw(raw, status, "Update Status")
     except MeiliSearchApiError as e:
         handle_meilisearch_api_error(e, index)
@@ -449,7 +455,7 @@ def update_distinct_attribute(
     with console.status("Updating distinct attribute..."):
         process_request(
             client_index,
-            partial(client_index.update_distinct_attribute, distinct_attribute),
+            partial(client_index.update_distinct_attribute, distinct_attribute),  # type: ignore
             client_index.get_distinct_attribute,
             wait,
             "Update Distinct Attribute",
@@ -460,7 +466,7 @@ def update_distinct_attribute(
 @app.command()
 def update(
     index: str = Argument(
-        ..., help="The name of the index for which the settings should be udpated"
+        ..., help="The name of the index for which the settings should be updated"
     ),
     primary_key: str = Argument(..., help="The primary key of the index"),
     url: Optional[str] = URL_OPTION,
@@ -472,13 +478,18 @@ def update(
     client = create_client(url, master_key)
     try:
         with console.status("Updating index..."):
-            response = client.index(index).update(primary_key=primary_key)
+            update_response = client.index(index).update(primary_key=primary_key)
+            status = client.wait_for_task(update_response["uid"])
+            if status["status"] == "failed":
+                console.print(status)
+                sys.exit(1)
+            response = client.get_index(index).__dict__
 
         index_display = {
-            "uid": response.uid,
-            "primary_key": response.primary_key,
-            "created_at": str(response.created_at),
-            "updated_at": str(response.updated_at),
+            "uid": response["uid"],
+            "primary_key": response["primary_key"],
+            "created_at": str(response["created_at"]),
+            "updated_at": str(response["updated_at"]),
         }
 
         if raw:
