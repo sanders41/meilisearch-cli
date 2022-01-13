@@ -31,7 +31,7 @@ from meilisearch_cli._helpers import (
 
 install()
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 
 app = Typer()
 app.add_typer(documents.app, name="documents", help="Manage documents in an index.")
