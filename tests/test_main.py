@@ -1,7 +1,9 @@
+import json
 from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 
+import jwt
 import pytest
 from meilisearch.errors import MeiliSearchApiError
 from meilisearch.index import Index
@@ -9,6 +11,14 @@ from requests.models import Response
 from tomlkit import parse
 
 from meilisearch_cli.main import __version__, app
+
+
+@pytest.fixture
+def default_search_key(client):
+    keys = client.get_keys()
+    for key in keys["results"]:
+        if "Default Search API Key" in key["description"]:
+            return key
 
 
 @pytest.fixture
@@ -144,6 +154,43 @@ def test_create_key(expires_at, raw, test_key_info, test_runner):
     if raw:
         assert "}" in out
         assert "}" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_generate_tenant_token(test_runner, default_search_key):
+    search_rules = '{"test": "value"}'
+    expected = jwt.encode(
+        {"searchRules": json.loads(search_rules), "apiKeyPrefix": default_search_key["key"][:8]},
+        default_search_key["key"],
+    ).split(".")[0]
+    args = ["generate-tenant-token", search_rules, default_search_key["key"]]
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+    out = runner_result.stdout
+    assert expected in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_generate_tenant_token_with_expire_date(test_runner, default_search_key):
+    search_rules = '{"test": "value"}'
+    expires_at = datetime.utcnow() + timedelta(days=1)
+    expected = jwt.encode(
+        {
+            "searchRules": json.loads(search_rules),
+            "apiKeyPrefix": default_search_key["key"][:8],
+            "exp": int(datetime.timestamp(expires_at)),
+        },
+        default_search_key["key"],
+    ).split(".")[0]
+    args = [
+        "generate-tenant-token",
+        search_rules,
+        default_search_key["key"],
+        "--expires-at",
+        expires_at,
+    ]
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+    out = runner_result.stdout
+    assert expected in out
 
 
 @pytest.mark.usefixtures("env_vars")
