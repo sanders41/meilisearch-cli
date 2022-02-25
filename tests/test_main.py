@@ -194,6 +194,19 @@ def test_generate_tenant_token_with_expire_date(test_runner, default_search_key)
 
 
 @pytest.mark.usefixtures("env_vars")
+def test_generate_tenant_token_all_search_rules(test_runner, default_search_key):
+    search_rules = "*"
+    expected = jwt.encode(
+        {"searchRules": ["*"], "apiKeyPrefix": default_search_key["key"][:8]},
+        default_search_key["key"],
+    ).split(".")[0]
+    args = ["generate-tenant-token", search_rules, default_search_key["key"]]
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+    out = runner_result.stdout
+    assert expected in out
+
+
+@pytest.mark.usefixtures("env_vars")
 def test_create_key_no_vals(test_runner):
     runner_result = test_runner.invoke(app, "create-key", catch_exceptions=False)
     out = runner_result.stdout
