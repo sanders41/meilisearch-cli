@@ -10,16 +10,12 @@ from meilisearch_cli.main import app
 from tests.utils import get_update_id_from_output
 
 
-@pytest.mark.parametrize("primary_key", [None, "alt_id"])
 @pytest.mark.parametrize("use_env", [True, False])
 @pytest.mark.parametrize("raw", [True, False])
 def test_create_index(
-    primary_key, use_env, raw, test_runner, index_uid, base_url, master_key, client, monkeypatch
+    use_env, raw, test_runner, index_uid, base_url, master_key, client, monkeypatch
 ):
     args = ["index", "create", index_uid]
-    if primary_key:
-        args.append("--primary-key")
-        args.append(primary_key)
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -37,23 +33,30 @@ def test_create_index(
 
     result = client.get_index(index_uid)
     assert result.uid == index_uid
-    assert result.primary_key == primary_key
+
+    out = runner_result.stdout
+
+    assert "uid" in out
+    assert index_uid in out
+
+    if raw:
+        assert "{" in out
+        assert "}" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_create_index_with_primary_key(test_runner, index_uid):
+    primary_key = "alt_id"
+    args = ["index", "create", index_uid, "--primary-key", primary_key]
+
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
 
     out = runner_result.stdout
 
     assert "uid" in out
     assert index_uid in out
     assert "primary_key" in out
-    if primary_key:
-        assert primary_key in out
-    elif raw:
-        assert "null" in out
-    else:
-        assert "None" in out
-
-    if raw:
-        assert "{" in out
-        assert "}" in out
+    assert primary_key in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -75,23 +78,12 @@ def test_create_index_error(mock_create, test_runner, index_uid):
         )
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_create_index_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_create_index_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "create", index_uid])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.parametrize("use_env", [True, False])
@@ -120,7 +112,7 @@ def test_delete_index(use_env, base_url, master_key, test_runner, index_uid, mon
 
 @pytest.mark.usefixtures("env_vars")
 def test_delete_index_not_found_error(test_runner):
-    runner_result = test_runner.invoke(app, ["index", "delete", "bad"])
+    runner_result = test_runner.invoke(app, ["index", "delete", "bad"], catch_exceptions=False)
     out = runner_result.stdout
     assert "not found" in out
 
@@ -133,23 +125,12 @@ def test_delete_index_error(mock_delete, test_runner, index_uid):
         test_runner.invoke(app, ["index", "delete", index_uid], catch_exceptions=False)
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_delete_index_no_url_maseter_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_delete_index_no_url_maseter_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "delete", index_uid])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.parametrize("use_env", [True, False])
@@ -197,23 +178,12 @@ def test_get_index_error(mock_get, test_runner, index_uid):
         test_runner.invoke(app, ["index", "get", index_uid], catch_exceptions=False)
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_get_index_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_get_index_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "get", index_uid])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.parametrize("use_env", [True, False])
@@ -253,23 +223,12 @@ def test_get_indexes(
         assert "}" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_get_indexes_no_url_master_key(remove_env, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_get_indexes_no_url_master_key(test_runner):
     runner_result = test_runner.invoke(app, ["index", "get-all"])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.parametrize("use_env", [True, False])
@@ -296,23 +255,12 @@ def test_get_primary_key(
     assert primary_key in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_get_primary_key_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_get_primary_key_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "get-primary-key", index_uid])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -368,23 +316,12 @@ def test_get_settings(
         assert "}" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_get_settings_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_get_settings_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "get-settings", index_uid])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -431,23 +368,12 @@ def test_get_stats(use_env, raw, index_uid, base_url, master_key, test_runner, c
         assert "}" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_get_stats_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_get_stats_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "get-stats", index_uid])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -502,23 +428,12 @@ def test_get_task(
         assert "}" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_get_task_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_get_task_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "get-task", index_uid, "0"])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -536,14 +451,9 @@ def test_get_task_error(mock_get, test_runner, index_uid):
         test_runner.invoke(app, ["index", "get-task", index_uid, "0"], catch_exceptions=False)
 
 
-@pytest.mark.parametrize("wait_flag, expected", [(None, "uid"), ("--wait", "*"), ("-w", "*")])
 @pytest.mark.parametrize("use_env", [True, False])
-@pytest.mark.parametrize("raw", [True, False])
-def test_reset_displayed_attributes(
+def test_reset_displayed_attributes_no_wait(
     use_env,
-    raw,
-    wait_flag,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -554,9 +464,6 @@ def test_reset_displayed_attributes(
     index = empty_index()
     args = ["index", "reset-displayed-attributes", index_uid]
 
-    if wait_flag:
-        args.append(wait_flag)
-
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
         monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
@@ -565,6 +472,28 @@ def test_reset_displayed_attributes(
         args.append(base_url)
         args.append("--master-key")
         args.append(master_key)
+
+    response = index.update_displayed_attributes(["title", "genre"])
+    index.wait_for_task(response["uid"])
+    assert index.get_displayed_attributes() == ["title", "genre"]
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+
+    out = runner_result.stdout
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_reset_displayed_attributes_wait(
+    wait_flag,
+    raw,
+    index_uid,
+    test_runner,
+    empty_index,
+):
+    index = empty_index()
+    args = ["index", "reset-displayed-attributes", index_uid, wait_flag]
 
     if raw:
         args.append("--raw")
@@ -575,28 +504,19 @@ def test_reset_displayed_attributes(
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
 
     out = runner_result.stdout
-    assert expected in out
-
-
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_reset_displayed_attributes_no_url_master_key(
-    remove_env, index_uid, test_runner, monkeypatch
-):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
+    print(out)
+    if raw:
+        assert '"*"' in out
     else:
-        monkeypatch.delenv(remove_env, raising=False)
+        assert "*" in out
 
+
+def test_reset_displayed_attributes_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "reset-displayed-attributes", index_uid])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -642,14 +562,9 @@ def test_reset_displayed_attributes_error(mock_get, test_runner, index_uid):
         )
 
 
-@pytest.mark.parametrize("wait_flag, expected", [(None, "uid"), ("--wait", ""), ("-w", "")])
 @pytest.mark.parametrize("use_env", [True, False])
-@pytest.mark.parametrize("raw", [True, False])
-def test_reset_distinct_attribute(
+def test_reset_distinct_attribute_no_wait(
     use_env,
-    raw,
-    wait_flag,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -659,9 +574,6 @@ def test_reset_distinct_attribute(
 ):
     args = ["index", "reset-distinct-attribute", index_uid]
 
-    if wait_flag:
-        args.append(wait_flag)
-
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
         monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
@@ -670,6 +582,29 @@ def test_reset_distinct_attribute(
         args.append(base_url)
         args.append("--master-key")
         args.append(master_key)
+
+    index = client.index(index_uid)
+    update = index.update_distinct_attribute("title")
+    index.wait_for_task(update["uid"])
+
+    assert index.get_distinct_attribute() == "title"
+    runner_result = test_runner.invoke(app, args)
+
+    out = runner_result.stdout
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_reset_distinct_attribute_wait(
+    raw,
+    wait_flag,
+    index_uid,
+    test_runner,
+    client,
+):
+    args = ["index", "reset-distinct-attribute", index_uid, wait_flag]
 
     if raw:
         args.append("--raw")
@@ -682,7 +617,10 @@ def test_reset_distinct_attribute(
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
-    assert expected in out
+    if raw:
+        assert 'null' in out
+    else:
+        assert "" in out
 
 
 @pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
@@ -725,14 +663,9 @@ def test_reset_distinct_attribute_error(mock_get, test_runner, index_uid):
         )
 
 
-@pytest.mark.parametrize("wait_flag, expected", [(None, "uid"), ("--wait", "[]"), ("-w", "[]")])
 @pytest.mark.parametrize("use_env", [True, False])
-@pytest.mark.parametrize("raw", [True, False])
-def test_reset_filterable_attributes(
+def test_reset_filterable_attributes_no_wait(
     use_env,
-    raw,
-    wait_flag,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -742,9 +675,6 @@ def test_reset_filterable_attributes(
 ):
     args = ["index", "reset-filterable-attributes", index_uid]
 
-    if wait_flag:
-        args.append(wait_flag)
-
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
         monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
@@ -753,6 +683,29 @@ def test_reset_filterable_attributes(
         args.append(base_url)
         args.append("--master-key")
         args.append(master_key)
+
+    index = client.index(index_uid)
+    update = index.update_displayed_attributes(["title", "genre"])
+    index.wait_for_task(update["uid"])
+
+    assert index.get_displayed_attributes() == ["title", "genre"]
+    runner_result = test_runner.invoke(app, args)
+
+    out = runner_result.stdout
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_reset_filterable_attributes_wait(
+    raw,
+    wait_flag,
+    index_uid,
+    test_runner,
+    client,
+):
+    args = ["index", "reset-filterable-attributes", index_uid, wait_flag]
 
     if raw:
         args.append("--raw")
@@ -765,28 +718,15 @@ def test_reset_filterable_attributes(
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
-    assert expected in out
+    assert "[]" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_reset_filterable_attributes_no_url_master_key(
-    remove_env, index_uid, test_runner, monkeypatch
-):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_reset_filterable_attributes_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "reset-filterable-attributes", index_uid])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -808,21 +748,9 @@ def test_reset_filterable_attributes_error(mock_get, test_runner, index_uid):
         )
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected",
-    [
-        (None, "uid"),
-        ("--wait", ["words", "typo", "proximity", "attribute", "sort", "exactness"]),
-        ("-w", ["words", "typo", "proximity", "attribute", "sort", "exactness"]),
-    ],
-)
 @pytest.mark.parametrize("use_env", [True, False])
-@pytest.mark.parametrize("raw", [True, False])
-def test_reset_ranking_rules(
+def test_reset_ranking_rules_no_wait(
     use_env,
-    raw,
-    wait_flag,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -832,9 +760,6 @@ def test_reset_ranking_rules(
 ):
     args = ["index", "reset-ranking-rules", index_uid]
 
-    if wait_flag:
-        args.append(wait_flag)
-
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
         monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
@@ -843,6 +768,29 @@ def test_reset_ranking_rules(
         args.append(base_url)
         args.append("--master-key")
         args.append(master_key)
+
+    index = client.index(index_uid)
+    update = index.update_displayed_attributes(["sort", "words"])
+    index.wait_for_task(update["uid"])
+
+    assert index.get_displayed_attributes() == ["sort", "words"]
+    runner_result = test_runner.invoke(app, args)
+
+    out = runner_result.stdout
+    "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag",["--wait", "-w"])
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_reset_ranking_rules_wait(
+    wait_flag,
+    raw,
+    index_uid,
+    test_runner,
+    client,
+):
+    args = ["index", "reset-ranking-rules", index_uid, wait_flag]
 
     if raw:
         args.append("--raw")
@@ -855,27 +803,16 @@ def test_reset_ranking_rules(
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
-    for e in expected:
+    for e in ["words", "typo", "proximity", "attribute", "sort", "exactness"]:
         assert e in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_reset_ranking_rules_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_reset_ranking_rules_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "reset-ranking-rules", index_uid])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -895,14 +832,9 @@ def test_reset_ranking_rules_error(mock_get, test_runner, index_uid):
         test_runner.invoke(app, ["index", "reset-ranking-rules", index_uid], catch_exceptions=False)
 
 
-@pytest.mark.parametrize("wait_flag, expected", [(None, "uid"), ("--wait", "*"), ("-w", "*")])
 @pytest.mark.parametrize("use_env", [True, False])
-@pytest.mark.parametrize("raw", [True, False])
-def test_reset_searchable_attributes(
+def test_reset_searchable_attributes_no_wait(
     use_env,
-    raw,
-    wait_flag,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -912,9 +844,6 @@ def test_reset_searchable_attributes(
 ):
     args = ["index", "reset-searchable-attributes", index_uid]
 
-    if wait_flag:
-        args.append(wait_flag)
-
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
         monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
@@ -923,6 +852,29 @@ def test_reset_searchable_attributes(
         args.append(base_url)
         args.append("--master-key")
         args.append(master_key)
+
+    index = client.index(index_uid)
+    update = index.update_displayed_attributes(["title", "genre"])
+    index.wait_for_task(update["uid"])
+
+    assert index.get_displayed_attributes() == ["title", "genre"]
+    runner_result = test_runner.invoke(app, args)
+
+    out = runner_result.stdout
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_reset_searchable_attributes_wait(
+    raw,
+    wait_flag,
+    index_uid,
+    test_runner,
+    client,
+):
+    args = ["index", "reset-searchable-attributes", index_uid, wait_flag]
 
     if raw:
         args.append("--raw")
@@ -935,28 +887,15 @@ def test_reset_searchable_attributes(
     runner_result = test_runner.invoke(app, args)
 
     out = runner_result.stdout
-    assert expected in out
+    assert "*" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_reset_searchable_attributes_no_url_master_key(
-    remove_env, index_uid, test_runner, monkeypatch
-):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_reset_searchable_attributes_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "reset-searchable-attributes", index_uid])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -978,16 +917,9 @@ def test_reset_searchable_attributes_error(mock_get, test_runner, index_uid):
         )
 
 
-@pytest.mark.parametrize("wait_flag", [None, "--wait", "-w"])
 @pytest.mark.parametrize("use_env", [True, False])
-@pytest.mark.parametrize("raw", [True, False])
-def test_reset_settings(
-    use_env, raw, wait_flag, index_uid, base_url, master_key, test_runner, client, monkeypatch
-):
+def test_reset_settings_no_wait(use_env, index_uid, base_url, master_key, test_runner, client, monkeypatch):
     args = ["index", "reset-settings", index_uid]
-
-    if wait_flag:
-        args.append(wait_flag)
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -997,9 +929,6 @@ def test_reset_settings(
         args.append(base_url)
         args.append("--master-key")
         args.append(master_key)
-
-    if raw:
-        args.append("--raw")
 
     index = client.index(index_uid)
 
@@ -1021,53 +950,69 @@ def test_reset_settings(
 
     out = runner_result.stdout
 
-    if wait_flag:
-        assert "displayedAttributes" in out
-        assert "*" in out
-        assert "searchableAttributes" in out
-        assert "filterableAttributes" in out
-        assert "[]" in out
-        assert "sortableAttributes" in out
-        assert "rankingRules" in out
-        assert "stopWords" in out
-        assert "synonyms" in out
-        assert "{}" in out
-        assert "distinctAttribute" in out
-        assert "words" in out
-        assert "typo" in out
-        assert "proximity" in out
-        assert "attribute" in out
-        assert "sort" in out
-        assert "exactness" in out
-        if raw:
-            assert "null" in out
-        else:
-            assert "None" in out
-    else:
-        assert "uid" in out
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_reset_settings_wait(raw, wait_flag, index_uid, test_runner, client):
+    args = ["index", "reset-settings", index_uid, wait_flag]
 
     if raw:
+        args.append("--raw")
+
+    index = client.index(index_uid)
+
+    updated_settings = {
+        "displayedAttributes": ["genre", "title"],
+        "searchableAttributes": ["genre", "title"],
+        "filterableAttributes": ["genre", "title"],
+        "sortableAttributes": ["genre", "title"],
+        "rankingRules": ["sort", "words"],
+        "stopWords": ["a", "the"],
+        "synonyms": {"logan": ["marvel", "wolverine"]},
+        "distinctAttribute": "title",
+    }
+    update = index.update_settings(updated_settings)
+    index.wait_for_task(update["uid"])
+    assert index.get_settings() == updated_settings
+
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+
+    out = runner_result.stdout
+
+    assert "displayedAttributes" in out
+    assert "*" in out
+    assert "searchableAttributes" in out
+    assert "filterableAttributes" in out
+    assert "[]" in out
+    assert "sortableAttributes" in out
+    assert "rankingRules" in out
+    assert "stopWords" in out
+    assert "synonyms" in out
+    assert "{}" in out
+    assert "distinctAttribute" in out
+    assert "words" in out
+    assert "typo" in out
+    assert "proximity" in out
+    assert "attribute" in out
+    assert "sort" in out
+    assert "exactness" in out
+    if raw:
+        assert "null" in out
         assert "{" in out
         assert "}" in out
-
-
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_reset_settings_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
     else:
-        monkeypatch.delenv(remove_env, raising=False)
+        assert "None" in out
 
+
+def test_reset_settings_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "reset-settings", index_uid])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -1085,14 +1030,9 @@ def test_reset_settings_error(mock_get, test_runner, index_uid):
         test_runner.invoke(app, ["index", "reset-settings", index_uid], catch_exceptions=False)
 
 
-@pytest.mark.parametrize("wait_flag, expected", [(None, "uid"), ("--wait", "[]"), ("-w", "[]")])
 @pytest.mark.parametrize("use_env", [True, False])
-@pytest.mark.parametrize("raw", [True, False])
-def test_reset_stop_words(
+def test_reset_stop_words_no_wait(
     use_env,
-    raw,
-    wait_flag,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -1102,9 +1042,6 @@ def test_reset_stop_words(
 ):
     args = ["index", "reset-stop-words", index_uid]
 
-    if wait_flag:
-        args.append(wait_flag)
-
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
         monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
@@ -1113,6 +1050,29 @@ def test_reset_stop_words(
         args.append(base_url)
         args.append("--master-key")
         args.append(master_key)
+
+    index = client.index(index_uid)
+    update = index.update_stop_words(["a", "the"])
+    index.wait_for_task(update["uid"])
+
+    assert index.get_stop_words() == ["a", "the"]
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+
+    out = runner_result.stdout
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_reset_stop_words_wait(
+    wait_flag,
+    raw,
+    index_uid,
+    test_runner,
+    client,
+):
+    args = ["index", "reset-stop-words", index_uid, wait_flag]
 
     if raw:
         args.append("--raw")
@@ -1125,26 +1085,15 @@ def test_reset_stop_words(
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
 
     out = runner_result.stdout
-    assert expected in out
+    assert "[]" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_reset_stop_words_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_reset_stop_words_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "reset-stop-words", index_uid])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -1162,14 +1111,9 @@ def test_reset_stop_words_error(mock_get, test_runner, index_uid):
         test_runner.invoke(app, ["index", "reset-stop-words", index_uid], catch_exceptions=False)
 
 
-@pytest.mark.parametrize("wait_flag, expected", [(None, "uid"), ("--wait", "{}"), ("-w", "{}")])
 @pytest.mark.parametrize("use_env", [True, False])
-@pytest.mark.parametrize("raw", [True, False])
-def test_reset_synonyms(
+def test_reset_synonyms_no_wait(
     use_env,
-    raw,
-    wait_flag,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -1179,9 +1123,6 @@ def test_reset_synonyms(
 ):
     args = ["index", "reset-synonyms", index_uid]
 
-    if wait_flag:
-        args.append(wait_flag)
-
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
         monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
@@ -1190,6 +1131,29 @@ def test_reset_synonyms(
         args.append(base_url)
         args.append("--master-key")
         args.append(master_key)
+
+    index = client.index(index_uid)
+    update = index.update_synonyms({"logan": ["marval", "wolverine"]})
+    index.wait_for_task(update["uid"])
+
+    assert index.get_synonyms() == {"logan": ["marval", "wolverine"]}
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+
+    out = runner_result.stdout
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_reset_synonyms_wait(
+    wait_flag,
+    raw,
+    index_uid,
+    test_runner,
+    client,
+):
+    args = ["index", "reset-synonyms", index_uid, wait_flag]
 
     if raw:
         args.append("--raw")
@@ -1202,26 +1166,15 @@ def test_reset_synonyms(
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
 
     out = runner_result.stdout
-    assert expected in out
+    assert "{}" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_reset_syonyms_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_reset_syonyms_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "reset-synonyms", index_uid])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -1239,21 +1192,9 @@ def test_reset_synonyms_error(mock_get, test_runner, index_uid):
         test_runner.invoke(app, ["index", "reset-synonyms", index_uid], catch_exceptions=False)
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected",
-    [
-        (None, "uid"),
-        ("--wait", ["genre", "title"]),
-        ("-w", ["genre", "title"]),
-    ],
-)
-@pytest.mark.parametrize("raw", [True, False])
 @pytest.mark.parametrize("use_env", [True, False])
-def test_update_displayed_attributes(
+def test_update_displayed_attributes_no_wait(
     use_env,
-    raw,
-    wait_flag,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -1262,9 +1203,6 @@ def test_update_displayed_attributes(
     monkeypatch,
 ):
     args = ["index", "update-displayed-attributes", index_uid, "genre", "title"]
-
-    if wait_flag:
-        args.append(wait_flag)
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -1275,6 +1213,30 @@ def test_update_displayed_attributes(
         args.append("--master-key")
         args.append(master_key)
 
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
+    runner_result = test_runner.invoke(app, args)
+    out = runner_result.stdout
+
+    client.index(index_uid).wait_for_task(get_update_id_from_output(out))
+
+    assert index.get_displayed_attributes() == ["genre", "title"]
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_update_displayed_attributes_wait(
+    wait_flag,
+    raw,
+    index_uid,
+    test_runner,
+    client,
+):
+    args = ["index", "update-displayed-attributes", index_uid, "genre", "title", wait_flag]
+
     if raw:
         args.append("--raw")
 
@@ -1284,35 +1246,19 @@ def test_update_displayed_attributes(
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
-    if not wait_flag:
-        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
-
     assert index.get_displayed_attributes() == ["genre", "title"]
-    for e in expected:
+    for e in ["genre", "title"]:
         assert e in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_update_displayed_attributes_no_url_master_key(
-    remove_env, index_uid, test_runner, monkeypatch
-):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_update_displayed_attributes_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(
         app, ["index", "update-displayed-attributes", index_uid, "title"]
     )
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.parametrize(
@@ -1367,27 +1313,14 @@ def test_update_distinct_attribute(
     assert expected in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_update_distinct_attribute_no_url_master_key(
-    remove_env, index_uid, test_runner, monkeypatch
-):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_update_distinct_attribute_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(
         app, ["index", "update-distinct-attribute", index_uid, "title"]
     )
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.parametrize("use_env", [True, False])
@@ -1429,23 +1362,12 @@ def test_update_index(
     assert primary_key in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_update_index_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_update_index_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "update", index_uid, "test"])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -1485,21 +1407,9 @@ def test_update_index_primary_key_exists(
     assert "error" in out
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected",
-    [
-        (None, "uid"),
-        ("--wait", ["sort", "words"]),
-        ("-w", ["sort", "words"]),
-    ],
-)
 @pytest.mark.parametrize("use_env", [True, False])
-@pytest.mark.parametrize("raw", [True, False])
-def test_update_ranking_rules(
+def test_update_ranking_rules_no_wait(
     use_env,
-    raw,
-    wait_flag,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -1509,9 +1419,6 @@ def test_update_ranking_rules(
 ):
     args = ["index", "update-ranking-rules", index_uid, "sort", "words"]
 
-    if wait_flag:
-        args.append(wait_flag)
-
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
         monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
@@ -1520,6 +1427,30 @@ def test_update_ranking_rules(
         args.append(base_url)
         args.append("--master-key")
         args.append(master_key)
+
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
+    runner_result = test_runner.invoke(app, args)
+
+    out = runner_result.stdout
+
+    update_id = get_update_id_from_output(out)
+    index.wait_for_task(update_id)
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_update_ranking_rules(
+    raw,
+    wait_flag,
+    index_uid,
+    test_runner,
+    client,
+):
+    args = ["index", "update-ranking-rules", index_uid, "sort", "words", wait_flag]
 
     if raw:
         args.append("--raw")
@@ -1531,49 +1462,22 @@ def test_update_ranking_rules(
 
     out = runner_result.stdout
 
-    if not wait_flag:
-        update_id = get_update_id_from_output(out)
-        index.wait_for_task(update_id)
-
     assert index.get_ranking_rules() == ["sort", "words"]
-    for e in expected:
+    for e in ["sort", "words"]:
         assert e in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_update_ranking_rules_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_update_ranking_rules_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "update-ranking-rules", index_uid, "sort"])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected",
-    [
-        (None, "uid"),
-        ("--wait", ["genre", "title"]),
-        ("-w", ["genre", "title"]),
-    ],
-)
 @pytest.mark.parametrize("use_env", [True, False])
-@pytest.mark.parametrize("raw", [True, False])
-def test_update_searchable_attributes(
+def test_update_searchable_attributes_no_wait(
     use_env,
-    raw,
-    wait_flag,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -1583,9 +1487,6 @@ def test_update_searchable_attributes(
 ):
     args = ["index", "update-searchable-attributes", index_uid, "genre", "title"]
 
-    if wait_flag:
-        args.append(wait_flag)
-
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
         monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
@@ -1594,6 +1495,31 @@ def test_update_searchable_attributes(
         args.append(base_url)
         args.append("--master-key")
         args.append(master_key)
+
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
+    runner_result = test_runner.invoke(app, args)
+    out = runner_result.stdout
+
+    update_id = get_update_id_from_output(out)
+    index.wait_for_task(update_id)
+
+    assert index.get_searchable_attributes() == ["genre", "title"]
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_update_searchable_attributes_wait(
+    raw,
+    wait_flag,
+    index_uid,
+    test_runner,
+    client,
+):
+    args = ["index", "update-searchable-attributes", index_uid, "genre", "title", wait_flag]
 
     if raw:
         args.append("--raw")
@@ -1604,45 +1530,26 @@ def test_update_searchable_attributes(
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
-    if not wait_flag:
-        update_id = get_update_id_from_output(out)
-        index.wait_for_task(update_id)
-
     assert index.get_searchable_attributes() == ["genre", "title"]
-    for e in expected:
+    for e in ["genre", "title"]:
         assert e in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_update_searchable_attributes_no_url_master_key(
-    remove_env, index_uid, test_runner, monkeypatch
-):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_update_searchable_attributes_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(
         app, ["index", "update-searchable-attributes", index_uid, "title"]
     )
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
-@pytest.mark.parametrize("wait_flag", [None, "--wait", "-w"])
 @pytest.mark.parametrize("use_env", [True, False])
 @pytest.mark.parametrize("raw", [True, False])
-def test_update_settings(
+def test_update_settings_no_wait(
     use_env,
     raw,
-    wait_flag,
     index_uid,
     base_url,
     master_key,
@@ -1695,9 +1602,6 @@ def test_update_settings(
         args.append("--stop-words")
         args.append(word)
 
-    if wait_flag:
-        args.append(wait_flag)
-
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
         monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
@@ -1716,65 +1620,120 @@ def test_update_settings(
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
-    if not wait_flag:
-        update_id = get_update_id_from_output(out)
-        index.wait_for_task(update_id)
+    update_id = get_update_id_from_output(out)
+    index.wait_for_task(update_id)
 
     assert index.get_settings() == updated_settings
-
-    if wait_flag:
-        assert "displayedAttributes"
-        for value in updated_settings["displayedAttributes"]:
-            assert value in out
-        assert "searchableAttributes" in out
-        for value in updated_settings["searchableAttributes"]:
-            assert value in out
-        assert "filterableAttributes" in out
-        for value in updated_settings["filterableAttributes"]:
-            assert value in out
-        assert "sortableAttributes" in out
-        for value in updated_settings["sortableAttributes"]:
-            assert value in out
-        assert "rankingRules" in out
-        for value in updated_settings["rankingRules"]:
-            assert value in out
-        assert "stopWords" in out
-        for value in updated_settings["stopWords"]:
-            assert value in out
-        assert "synonyms" in out
-        for key in updated_settings["synonyms"]:
-            assert key in out
-            for value in updated_settings["synonyms"][key]:  # type: ignore
-                assert value in out
-        assert "distinctAttribute" in out
-        assert updated_settings["distinctAttribute"] in out
-    else:
-        assert "uid" in out
+    assert "uid" in out
 
     if raw:
         assert "{" in out
         assert "}" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
 @pytest.mark.usefixtures("env_vars")
-def test_update_settings_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
+def test_update_settings(
+    wait_flag,
+    index_uid,
+    test_runner,
+    client,
+):
+    updated_settings = {
+        "displayedAttributes": ["genre", "title"],
+        "searchableAttributes": ["genre", "title"],
+        "filterableAttributes": ["genre", "title"],
+        "sortableAttributes": ["genre", "title"],
+        "rankingRules": ["sort", "words"],
+        "stopWords": ["a", "the"],
+        "synonyms": {"logan": ["marvel", "wolverine"]},
+        "distinctAttribute": "title",
+    }
 
+    args = [
+        "index",
+        "update-settings",
+        index_uid,
+        "--distinct-attribute",
+        updated_settings["distinctAttribute"],
+        "--synonyms",
+        '{"logan": ["marvel", "wolverine"]}',
+        wait_flag,
+    ]
+
+    for attribute in updated_settings["displayedAttributes"]:
+        args.append("--displayed-attributes")
+        args.append(attribute)
+
+    for attribute in updated_settings["filterableAttributes"]:
+        args.append("--filterable-attributes")
+        args.append(attribute)
+
+    for rule in updated_settings["rankingRules"]:
+        args.append("--ranking-rules")
+        args.append(rule)
+
+    for attribute in updated_settings["searchableAttributes"]:
+        args.append("--searchable-attributes")
+        args.append(attribute)
+
+    for attribute in updated_settings["sortableAttributes"]:
+        args.append("--sortable-attributes")
+        args.append(attribute)
+
+    for word in updated_settings["stopWords"]:
+        args.append("--stop-words")
+        args.append(word)
+
+    if wait_flag:
+        args.append(wait_flag)
+
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
+    runner_result = test_runner.invoke(app, args)
+    out = runner_result.stdout
+
+    if not wait_flag:
+        update_id = get_update_id_from_output(out)
+        index.wait_for_task(update_id)
+
+    assert index.get_settings() == updated_settings
+    assert "displayedAttributes"
+    for value in updated_settings["displayedAttributes"]:
+        assert value in out
+    assert "searchableAttributes" in out
+    for value in updated_settings["searchableAttributes"]:
+        assert value in out
+    assert "filterableAttributes" in out
+    for value in updated_settings["filterableAttributes"]:
+        assert value in out
+    assert "sortableAttributes" in out
+    for value in updated_settings["sortableAttributes"]:
+        assert value in out
+    assert "rankingRules" in out
+    for value in updated_settings["rankingRules"]:
+        assert value in out
+    assert "stopWords" in out
+    for value in updated_settings["stopWords"]:
+        assert value in out
+    assert "synonyms" in out
+    for key in updated_settings["synonyms"]:
+        assert key in out
+        for value in updated_settings["synonyms"][key]:  # type: ignore
+            assert value in out
+    assert "distinctAttribute" in out
+    assert updated_settings["distinctAttribute"] in out
+
+
+def test_update_settings_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(
         app, ["index", "update-settings", index_uid, "--distinct-attribute", "title"]
     )
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -1796,21 +1755,9 @@ def test_update_settings_json_error(
     assert "Unable to parse" in out
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected",
-    [
-        (None, "uid"),
-        ("--wait", ["genre", "title"]),
-        ("-w", ["genre", "title"]),
-    ],
-)
 @pytest.mark.parametrize("use_env", [True, False])
-@pytest.mark.parametrize("raw", [True, False])
-def test_update_sortable_attributes(
+def test_update_sortable_attributes_no_wait(
     use_env,
-    raw,
-    wait_flag,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -1820,9 +1767,6 @@ def test_update_sortable_attributes(
 ):
     args = ["index", "update-sortable-attributes", index_uid, "genre", "title"]
 
-    if wait_flag:
-        args.append(wait_flag)
-
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
         monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
@@ -1831,6 +1775,31 @@ def test_update_sortable_attributes(
         args.append(base_url)
         args.append("--master-key")
         args.append(master_key)
+
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
+    runner_result = test_runner.invoke(app, args)
+    out = runner_result.stdout
+
+    update_id = get_update_id_from_output(out)
+    index.wait_for_task(update_id)
+
+    assert index.get_sortable_attributes() == ["genre", "title"]
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_update_sortable_attributes_wait(
+    raw,
+    wait_flag,
+    index_uid,
+    test_runner,
+    client,
+):
+    args = ["index", "update-sortable-attributes", index_uid, "genre", "title", wait_flag]
 
     if raw:
         args.append("--raw")
@@ -1841,53 +1810,24 @@ def test_update_sortable_attributes(
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
-    if not wait_flag:
-        update_id = get_update_id_from_output(out)
-        index.wait_for_task(update_id)
-
     assert index.get_sortable_attributes() == ["genre", "title"]
-    for e in expected:
+    for e in ["genre", "title"]:
         assert e in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_update_sotrable_attributes_no_url_master_key(
-    remove_env, index_uid, test_runner, monkeypatch
-):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_update_sotrable_attributes_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(
         app, ["index", "update-sortable-attributes", index_uid, "title"]
     )
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected",
-    [
-        (None, "uid"),
-        ("--wait", ["a", "the"]),
-        ("-w", ["a", "the"]),
-    ],
-)
 @pytest.mark.parametrize("use_env", [True, False])
-@pytest.mark.parametrize("raw", [True, False])
-def test_update_stop_words(
+def test_update_stop_words_no_wait(
     use_env,
-    raw,
-    wait_flag,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -1897,9 +1837,6 @@ def test_update_stop_words(
 ):
     args = ["index", "update-stop-words", index_uid, "a", "the"]
 
-    if wait_flag:
-        args.append(wait_flag)
-
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
         monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
@@ -1908,6 +1845,31 @@ def test_update_stop_words(
         args.append(base_url)
         args.append("--master-key")
         args.append(master_key)
+
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
+    runner_result = test_runner.invoke(app, args)
+    out = runner_result.stdout
+
+    update_id = get_update_id_from_output(out)
+    index.wait_for_task(update_id)
+
+    assert index.get_stop_words() == ["a", "the"]
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_update_stop_words_wait(
+    raw,
+    wait_flag,
+    index_uid,
+    test_runner,
+    client,
+):
+    args = ["index", "update-stop-words", index_uid, "a", "the", wait_flag]
 
     if raw:
         args.append("--raw")
@@ -1918,49 +1880,22 @@ def test_update_stop_words(
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
-    if not wait_flag:
-        update_id = get_update_id_from_output(out)
-        index.wait_for_task(update_id)
-
     assert index.get_stop_words() == ["a", "the"]
-    for e in expected:
+    for e in ["a", "the"]:
         assert e in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_update_stop_words_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_update_stop_words_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "update-stop-words", index_uid, "the"])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected",
-    [
-        (None, "uid"),
-        ("--wait", "logan"),
-        ("-w", "logan"),
-    ],
-)
 @pytest.mark.parametrize("use_env", [True, False])
-@pytest.mark.parametrize("raw", [True, False])
-def test_update_synonyms(
+def test_update_synonyms_no_wait(
     use_env,
-    raw,
-    wait_flag,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -1970,9 +1905,6 @@ def test_update_synonyms(
 ):
     args = ["index", "update-synonyms", index_uid, '{"logan": ["marvel", "wolverine"]}']
 
-    if wait_flag:
-        args.append(wait_flag)
-
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
         monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
@@ -1981,6 +1913,31 @@ def test_update_synonyms(
         args.append(base_url)
         args.append("--master-key")
         args.append(master_key)
+
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+    out = runner_result.stdout
+
+    update_id = get_update_id_from_output(out)
+    index.wait_for_task(update_id)
+
+    assert index.get_synonyms() == {"logan": ["marvel", "wolverine"]}
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_update_synonyms_wait(
+    raw,
+    wait_flag,
+    index_uid,
+    test_runner,
+    client,
+):
+    args = ["index", "update-synonyms", index_uid, '{"logan": ["marvel", "wolverine"]}', wait_flag]
 
     if raw:
         args.append("--raw")
@@ -1991,33 +1948,18 @@ def test_update_synonyms(
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
     out = runner_result.stdout
 
-    if not wait_flag:
-        update_id = get_update_id_from_output(out)
-        index.wait_for_task(update_id)
-
     assert index.get_synonyms() == {"logan": ["marvel", "wolverine"]}
-    assert expected in out
+    assert "logan" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_update_synonyms_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_update_synonyms_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(
         app, ["index", "update-synonyms", index_uid, '{"logan": ["marvel", "wolverine"]}']
     )
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")

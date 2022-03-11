@@ -11,19 +11,13 @@ from tests.utils import get_update_id_from_output
 
 
 @pytest.mark.parametrize(
-    "wait_flag, expected",
-    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
-)
-@pytest.mark.parametrize(
     "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
 )
 @pytest.mark.parametrize("use_env", [True, False])
-def test_add_documents(
+def test_add_documents_no_wait(
     use_env,
-    wait_flag,
     primary_key,
     expected_primary_key,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -38,8 +32,37 @@ def test_add_documents(
         args.append("--primary-key")
         args.append(primary_key)
 
-    if wait_flag:
-        args.append(wait_flag)
+    if use_env:
+        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
+        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
+    else:
+        args.append("--url")
+        args.append(base_url)
+        args.append("--master-key")
+        args.append(master_key)
+
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+    out = runner_result.stdout
+
+    client.index(index_uid).wait_for_task(get_update_id_from_output(out))
+
+    assert client.index(index_uid).get_primary_key() == expected_primary_key
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("use_env", [True, False])
+def test_add_documents(
+    use_env,
+    wait_flag,
+    index_uid,
+    base_url,
+    master_key,
+    test_runner,
+    small_movies,
+    monkeypatch,
+):
+    args = ["documents", "add", index_uid, json.dumps(small_movies), wait_flag]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -53,30 +76,15 @@ def test_add_documents(
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
     out = runner_result.stdout
 
-    if not wait_flag:
-        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
-
-    assert client.index(index_uid).get_primary_key() == expected_primary_key
-    assert expected in out
+    assert "title" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_add_documents_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_add_documents_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["documents", "add", index_uid, '{"test": "test"}'])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -93,19 +101,13 @@ def test_add_documents_json_error(
 
 
 @pytest.mark.parametrize(
-    "wait_flag, expected",
-    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
-)
-@pytest.mark.parametrize(
     "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
 )
 @pytest.mark.parametrize("use_env", [True, False])
-def test_add_documents_from_file_json(
+def test_add_documents_from_file_json_no_wait(
     use_env,
-    wait_flag,
     primary_key,
     expected_primary_key,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -120,8 +122,37 @@ def test_add_documents_from_file_json(
         args.append("--primary-key")
         args.append(primary_key)
 
-    if wait_flag:
-        args.append(wait_flag)
+    if use_env:
+        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
+        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
+    else:
+        args.append("--url")
+        args.append(base_url)
+        args.append("--master-key")
+        args.append(master_key)
+
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+    out = runner_result.stdout
+
+    client.index(index_uid).wait_for_task(get_update_id_from_output(out))
+
+    assert client.index(index_uid).get_primary_key() == expected_primary_key
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("use_env", [True, False])
+def test_add_documents_from_file_json_wait(
+    use_env,
+    wait_flag,
+    index_uid,
+    base_url,
+    master_key,
+    test_runner,
+    monkeypatch,
+    small_movies_json_path,
+):
+    args = ["documents", "add-from-file", index_uid, str(small_movies_json_path), wait_flag]
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -135,134 +166,51 @@ def test_add_documents_from_file_json(
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
     out = runner_result.stdout
 
-    if not wait_flag:
-        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
-
-    assert client.index(index_uid).get_primary_key() == expected_primary_key
-    assert expected in out
+    assert "title" in out
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected",
-    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
-)
-@pytest.mark.parametrize(
-    "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
-)
-@pytest.mark.parametrize("use_env", [True, False])
+@pytest.mark.usefixtures("env_vars")
 def test_add_documents_from_file_csv(
-    use_env,
-    wait_flag,
-    primary_key,
-    expected_primary_key,
-    expected,
     index_uid,
-    base_url,
-    master_key,
     test_runner,
-    monkeypatch,
     client,
     small_movies_csv_path,
 ):
     args = ["documents", "add-from-file", index_uid, str(small_movies_csv_path)]
 
-    if primary_key:
-        args.append("--primary-key")
-        args.append(primary_key)
-
-    if wait_flag:
-        args.append(wait_flag)
-
-    if use_env:
-        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
-        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
-    else:
-        args.append("--url")
-        args.append(base_url)
-        args.append("--master-key")
-        args.append(master_key)
-
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
-    if not wait_flag:
-        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
+    client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
-    assert client.index(index_uid).get_primary_key() == expected_primary_key
-    assert expected in out
+    assert "uid" in out
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected",
-    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
-)
-@pytest.mark.parametrize(
-    "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
-)
-@pytest.mark.parametrize("use_env", [True, False])
+@pytest.mark.usefixtures("env_vars")
 def test_add_documents_from_file_ndjson(
-    use_env,
-    wait_flag,
-    primary_key,
-    expected_primary_key,
-    expected,
     index_uid,
-    base_url,
-    master_key,
     test_runner,
-    monkeypatch,
     client,
     small_movies_ndjson_path,
 ):
     args = ["documents", "add-from-file", index_uid, str(small_movies_ndjson_path)]
 
-    if primary_key:
-        args.append("--primary-key")
-        args.append(primary_key)
-
-    if wait_flag:
-        args.append(wait_flag)
-
-    if use_env:
-        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
-        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
-    else:
-        args.append("--url")
-        args.append(base_url)
-        args.append("--master-key")
-        args.append(master_key)
-
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
-    if not wait_flag:
-        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
+    client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
-    assert client.index(index_uid).get_primary_key() == expected_primary_key
-    assert expected in out
+    assert "uid" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_add_documents_from_file_no_url_master_key(
-    remove_env, index_uid, test_runner, small_movies_json_path, monkeypatch
-):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_add_documents_from_file_no_url_master_key(index_uid, test_runner, small_movies_json_path):
     runner_result = test_runner.invoke(
         app, ["documents", "add-from-file", index_uid, str(small_movies_json_path)]
     )
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -289,21 +237,15 @@ def test_add_documents_from_file_invalid_type(index_uid, test_runner, tmp_path):
 
 
 @pytest.mark.parametrize(
-    "wait_flag, expected",
-    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
-)
-@pytest.mark.parametrize(
     "primary_key, expected_primary_key", [(None, "id"), ("release_date", "release_date")]
 )
 @pytest.mark.parametrize("batch_size", [None, 10, 1000])
 @pytest.mark.parametrize("use_env", [True, False])
-def test_add_documents_in_batches(
+def test_add_documents_in_batches_no_wait(
     use_env,
-    wait_flag,
     primary_key,
     expected_primary_key,
     batch_size,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -324,9 +266,6 @@ def test_add_documents_in_batches(
         args.append("--primary-key")
         args.append(primary_key)
 
-    if wait_flag:
-        args.append(wait_flag)
-
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
         monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
@@ -343,30 +282,58 @@ def test_add_documents_in_batches(
         index.wait_for_task(task["uid"])
 
     assert index.get_primary_key() == expected_primary_key
-    assert expected in out
+    assert "uid" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_add_documents_in_batches_no_url_master_key(
-    remove_env, index_uid, test_runner, monkeypatch
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("batch_size", [None, 10, 1000])
+@pytest.mark.parametrize("use_env", [True, False])
+def test_add_documents_in_batches(
+    use_env,
+    wait_flag,
+    batch_size,
+    index_uid,
+    base_url,
+    master_key,
+    test_runner,
+    small_movies,
+    monkeypatch,
+    empty_index,
 ):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
+    index = empty_index()
 
+    args = ["documents", "add-in-batches", index_uid, json.dumps(small_movies), wait_flag]
+
+    if batch_size:
+        args.append("--batch-size")
+        args.append(str(batch_size))
+
+    if use_env:
+        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
+        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
+    else:
+        args.append("--url")
+        args.append(base_url)
+        args.append("--master-key")
+        args.append(master_key)
+
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+    out = runner_result.stdout
+
+    for task in index.get_tasks()["results"]:
+        index.wait_for_task(task["uid"])
+
+    assert "title" in out
+
+
+def test_add_documents_in_batches_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(
         app, ["documents", "add-in-batches", index_uid, '{"test": "test"}']
     )
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -426,23 +393,12 @@ def test_delete_all_documents(
     assert expected in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_delete_all_documents_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_delete_all_documents_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["documents", "delete-all", index_uid])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.parametrize(
@@ -493,23 +449,12 @@ def test_delete_document(
     assert expected in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_delete_document_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_delete_document_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["documents", "delete", index_uid, "1"])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.parametrize(
@@ -562,23 +507,12 @@ def test_delete_documents(
     assert expected in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_delete_documents_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_delete_documents_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["documents", "delete-multiple", index_uid, "1", "2"])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.parametrize("use_env", [True, False])
@@ -620,23 +554,12 @@ def test_get_all_update_status(
         assert "}" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_get_all_update_status_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_get_all_update_status_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["index", "get-tasks", index_uid])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -690,23 +613,12 @@ def test_get_document(
         assert "}" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_get_document_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_get_document_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["documents", "get", index_uid, "test"])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -762,23 +674,12 @@ def test_get_documents(
         assert "}" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
-def test_get_documents_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
+def test_get_documents_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["documents", "get-all", index_uid])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -796,17 +697,11 @@ def test_get_documents_error(mock_get, test_runner, index_uid):
         test_runner.invoke(app, ["documents", "get-all", index_uid], catch_exceptions=False)
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected",
-    [(None, "uid"), ("--wait", "Some Title"), ("-w", "Some Title")],
-)
 @pytest.mark.parametrize("raw", [True, False])
 @pytest.mark.parametrize("use_env", [True, False])
-def test_update_documents(
+def test_update_documents_no_wait(
     use_env,
     raw,
-    wait_flag,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -816,9 +711,6 @@ def test_update_documents(
     client,
 ):
     args = ["documents", "update", index_uid, json.dumps(small_movies)]
-
-    if wait_flag:
-        args.append(wait_flag)
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -835,43 +727,53 @@ def test_update_documents(
     update = client.index(index_uid).add_documents(small_movies)
     client.index(index_uid).wait_for_task(update["uid"])
     documents = client.index(index_uid).get_documents()
-    documents[0]["title"] = expected
+    documents[0]["title"] = "some title"
     update = client.index(index_uid).update_documents([documents[0]])
     client.index(index_uid).wait_for_task(update["uid"])
 
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
-    if not wait_flag:
-        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
+    client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
-    if wait_flag:
-        assert expected not in out
-    else:
-        assert expected in out
+    assert "uid" in out
 
     if raw:
         assert "{" in out
         assert "}" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
 @pytest.mark.usefixtures("env_vars")
-def test_update_documents_no_url_master_key(remove_env, index_uid, test_runner, monkeypatch):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
+def test_update_documents_wait(
+    wait_flag,
+    index_uid,
+    test_runner,
+    small_movies,
+    client,
+):
+    updated_title = "some title"
+    args = ["documents", "update", index_uid, json.dumps(small_movies), wait_flag]
 
+    update = client.index(index_uid).add_documents(small_movies)
+    client.index(index_uid).wait_for_task(update["uid"])
+    documents = client.index(index_uid).get_documents()
+    documents[0]["title"] = updated_title
+    update = client.index(index_uid).update_documents([documents[0]])
+    client.index(index_uid).wait_for_task(update["uid"])
+
+    runner_result = test_runner.invoke(app, args)
+    out = runner_result.stdout
+
+    assert updated_title not in out
+
+
+def test_update_documents_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(app, ["documents", "update", index_uid, '{"test": "test"}'])
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -887,17 +789,11 @@ def test_update_documents_json_error(
     assert "Unable to parse" in out
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected",
-    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
-)
 @pytest.mark.parametrize("raw", [True, False])
 @pytest.mark.parametrize("use_env", [True, False])
-def test_update_documents_from_file_json(
+def test_update_documents_from_file_json_no_wait(
     use_env,
     raw,
-    wait_flag,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -908,9 +804,6 @@ def test_update_documents_from_file_json(
 ):
     args = ["documents", "update-from-file", index_uid, str(small_movies_json_path)]
 
-    if wait_flag:
-        args.append(wait_flag)
-
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
         monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
@@ -926,135 +819,75 @@ def test_update_documents_from_file_json(
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
-    if not wait_flag:
-        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
+    client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
-    assert expected in out
+    assert "uid" in out
 
     if raw:
         assert "{" in out
         assert "}" in out
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected",
-    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
-)
-@pytest.mark.parametrize("use_env", [True, False])
-@pytest.mark.parametrize("raw", [True, False])
-def test_update_documents_from_file_csv(
-    use_env,
-    raw,
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.usefixtures("env_vars")
+def test_update_documents_from_file_json_wait(
     wait_flag,
-    expected,
     index_uid,
-    base_url,
-    master_key,
     test_runner,
-    monkeypatch,
+    small_movies_json_path,
+):
+    args = ["documents", "update-from-file", index_uid, str(small_movies_json_path), wait_flag]
+
+    runner_result = test_runner.invoke(app, args)
+    out = runner_result.stdout
+
+    assert "title" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_update_documents_from_file_csv(
+    index_uid,
+    test_runner,
     client,
     small_movies_csv_path,
 ):
     args = ["documents", "update-from-file", index_uid, str(small_movies_csv_path)]
 
-    if wait_flag:
-        args.append(wait_flag)
-
-    if use_env:
-        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
-        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
-    else:
-        args.append("--url")
-        args.append(base_url)
-        args.append("--master-key")
-        args.append(master_key)
-
-    if raw:
-        args.append("--raw")
-
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
-    if not wait_flag:
-        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
+    client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
-    assert expected in out
-
-    if raw:
-        assert "{" in out
-        assert "}" in out
+    assert "uid" in out
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected",
-    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
-)
-@pytest.mark.parametrize("use_env", [True, False])
-@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
 def test_update_documents_from_file_ndjson(
-    use_env,
-    raw,
-    wait_flag,
-    expected,
     index_uid,
-    base_url,
-    master_key,
     test_runner,
-    monkeypatch,
     client,
     small_movies_ndjson_path,
 ):
     args = ["documents", "update-from-file", index_uid, str(small_movies_ndjson_path)]
 
-    if wait_flag:
-        args.append(wait_flag)
-
-    if use_env:
-        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
-        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
-    else:
-        args.append("--url")
-        args.append(base_url)
-        args.append("--master-key")
-        args.append(master_key)
-
-    if raw:
-        args.append("--raw")
-
     runner_result = test_runner.invoke(app, args)
     out = runner_result.stdout
 
-    if not wait_flag:
-        client.index(index_uid).wait_for_task(get_update_id_from_output(out))
+    client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
-    assert expected in out
-
-    if raw:
-        assert "{" in out
-        assert "}" in out
+    assert "uid" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
-@pytest.mark.usefixtures("env_vars")
 def test_update_documents_from_file_no_url_master_key(
-    remove_env, index_uid, test_runner, small_movies_json_path, monkeypatch
+    index_uid, test_runner, small_movies_json_path
 ):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
-
     runner_result = test_runner.invoke(
         app, ["documents", "update-from-file", index_uid, str(small_movies_json_path)]
     )
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
@@ -1080,19 +913,13 @@ def test_update_documents_from_file_invalid_type(index_uid, test_runner, tmp_pat
     assert "not accepted" in out
 
 
-@pytest.mark.parametrize(
-    "wait_flag, expected",
-    [(None, "uid"), ("--wait", "title"), ("-w", "title")],
-)
 @pytest.mark.parametrize("batch_size", [None, 10, 1000])
 @pytest.mark.parametrize("use_env", [True, False])
 @pytest.mark.parametrize("raw", [True, False])
-def test_update_documents_in_batches(
+def test_update_documents_in_batches_no_wait(
     use_env,
     raw,
-    wait_flag,
     batch_size,
-    expected,
     index_uid,
     base_url,
     master_key,
@@ -1106,9 +933,6 @@ def test_update_documents_in_batches(
     if batch_size:
         args.append("--batch-size")
         args.append(str(batch_size))
-
-    if wait_flag:
-        args.append(wait_flag)
 
     if use_env:
         monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
@@ -1125,38 +949,40 @@ def test_update_documents_in_batches(
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
     out = runner_result.stdout
 
-    if not wait_flag:
-        for update_id in get_update_id_from_output(out):
-            client.index(index_uid).wait_for_task(update_id)
+    for update_id in get_update_id_from_output(out):
+        client.index(index_uid).wait_for_task(update_id)
 
-    assert expected in out
+    assert "uid" in out
 
     if raw:
         assert "{" in out
         assert "}" in out
 
 
-@pytest.mark.parametrize("remove_env", ["all", "MEILI_HTTP_ADDR", "MEILI_MASTER_KEY"])
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
 @pytest.mark.usefixtures("env_vars")
-def test_update_documents_in_batches_no_url_master_key(
-    remove_env, index_uid, test_runner, monkeypatch
+def test_update_documents_in_batches_wait(
+    wait_flag,
+    index_uid,
+    test_runner,
+    small_movies,
 ):
-    if remove_env == "all":
-        monkeypatch.delenv("MEILI_HTTP_ADDR", raising=False)
-        monkeypatch.delenv("MEILI_MASTER_KEY", raising=False)
-    else:
-        monkeypatch.delenv(remove_env, raising=False)
+    args = ["documents", "update-in-batches", index_uid, json.dumps(small_movies), wait_flag]
 
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+    out = runner_result.stdout
+
+    assert "title" in out
+
+
+def test_update_documents_in_batches_no_url_master_key(index_uid, test_runner):
     runner_result = test_runner.invoke(
         app, ["documents", "update-in-batches", index_uid, '{"test": "test"}']
     )
     out = runner_result.stdout
 
-    if remove_env == "all":
-        assert "MEILI_HTTP_ADDR" in out
-        assert "MEILI_MASTER_KEY" in out
-    else:
-        assert remove_env in out
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
 
 
 @pytest.mark.usefixtures("env_vars")
