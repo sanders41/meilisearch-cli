@@ -66,6 +66,7 @@ def delete(
     try:
         with console.status("Deleting the index..."):
             response = client.index(index).delete()
+            client.wait_for_task(response["uid"])
             check_index_status(client.config, index, response["uid"])
 
         console.print(
