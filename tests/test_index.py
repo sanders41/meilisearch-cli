@@ -504,7 +504,7 @@ def test_reset_displayed_attributes_wait(
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
 
     out = runner_result.stdout
-    print(out)
+
     if raw:
         assert '"*"' in out
     else:
@@ -618,7 +618,7 @@ def test_reset_distinct_attribute_wait(
 
     out = runner_result.stdout
     if raw:
-        assert 'null' in out
+        assert "null" in out
     else:
         assert "" in out
 
@@ -780,7 +780,7 @@ def test_reset_ranking_rules_no_wait(
     "uid" in out
 
 
-@pytest.mark.parametrize("wait_flag",["--wait", "-w"])
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
 @pytest.mark.parametrize("raw", [True, False])
 @pytest.mark.usefixtures("env_vars")
 def test_reset_ranking_rules_wait(
@@ -918,7 +918,9 @@ def test_reset_searchable_attributes_error(mock_get, test_runner, index_uid):
 
 
 @pytest.mark.parametrize("use_env", [True, False])
-def test_reset_settings_no_wait(use_env, index_uid, base_url, master_key, test_runner, client, monkeypatch):
+def test_reset_settings_no_wait(
+    use_env, index_uid, base_url, master_key, test_runner, client, monkeypatch
+):
     args = ["index", "reset-settings", index_uid]
 
     if use_env:
