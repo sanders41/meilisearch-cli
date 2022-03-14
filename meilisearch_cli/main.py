@@ -31,7 +31,7 @@ from meilisearch_cli._helpers import (
 
 install()
 
-__version__ = "0.9.1"
+__version__ = "0.10.0"
 
 app = Typer()
 app.add_typer(documents.app, name="documents", help="Manage documents in an index.")
@@ -58,6 +58,29 @@ def docs_link() -> None:
     """Gives a clickable link to the MeiliSearch documenation. This can be used in terminals that don't support links."""
 
     console.print("https://docs.meilisearch.com/")
+
+
+@app.command()
+def generate_tenant_token(
+    search_rules: str = Argument(..., help="The search rules to use for the tenant token"),
+    api_key: str = Argument(..., help="The API key to use to generate the tenant token"),
+    expires_at: datetime = Option(
+        None, help="The time at which the the tenant token should expire. UTC time should be used."
+    ),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+) -> None:
+    """Generate a tenant token to use for search routes."""
+    with console.status("Generating Tenant Token..."):
+        client = create_client(url, master_key)
+        try:
+            formatted_search_rules = json.loads(search_rules)
+        except json.JSONDecodeError:
+            formatted_search_rules = search_rules
+        response = client.generate_tenant_token(
+            formatted_search_rules, api_key=api_key, expires_at=expires_at
+        )
+        console.print(create_panel(response, title="Tenant Token"))
 
 
 @app.command()
