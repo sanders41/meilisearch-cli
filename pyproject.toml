@@ -36,7 +36,7 @@ pre-commit = "^2.17.0"
 pytest = "^7.1.1"
 pytest-cov = "^3.0.0"
 tox = "^3.24.5"
-types-requests = "^2.27.14"
+types-requests = "^2.27.15"
 tomlkit = "^0.10.1"
 PyJWT = "^2.3.0"
 
