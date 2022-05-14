@@ -391,7 +391,7 @@ def reset_stop_words(
 
 @app.command()
 def reset_synonyms(
-    index: str = Argument(..., help="The name of the index for which to reset the synonums"),
+    index: str = Argument(..., help="The name of the index for which to reset the synonyms"),
     url: Optional[str] = URL_OPTION,
     master_key: Optional[str] = MASTER_KEY_OPTION,
     wait: bool = WAIT_OPTION,
@@ -408,6 +408,31 @@ def reset_synonyms(
                 client_index.get_synonyms,
                 wait,
                 "Reset Synonyms",
+                raw,
+            )
+    except MeiliSearchApiError as e:
+        handle_meilisearch_api_error(e, index)
+
+
+@app.command()
+def reset_typo_tolerance(
+    index: str = Argument(..., help="The name of the index for which to reset the typo tolerance"),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
+) -> None:
+    """Reset typo tolerance of an index."""
+
+    client_index = create_client(url, master_key).index(index)
+    try:
+        with console.status("Resetting typo tolerance..."):
+            process_request(
+                client_index,
+                client_index.reset_typo_tolerance,
+                client_index.get_typo_tolerance,
+                wait,
+                "Reset Typo Tolerance",
                 raw,
             )
     except MeiliSearchApiError as e:
@@ -667,11 +692,11 @@ def update_synonyms(
     wait: bool = WAIT_OPTION,
     raw: bool = RAW_OPTION,
 ) -> None:
-    """Update the searchable attributes of an index."""
+    """Update the synonyms of an index."""
 
     client_index = create_client(url, master_key).index(index)
     try:
-        with console.status("Updating searchable attributes..."):
+        with console.status("Updating synonyms..."):
             process_request(
                 client_index,
                 partial(client_index.update_synonyms, json.loads(synonyms)),
@@ -682,6 +707,34 @@ def update_synonyms(
             )
     except json.decoder.JSONDecodeError:
         print_json_parse_error_message(synonyms)
+
+
+@app.command()
+def update_typo_tolerance(
+    index: str = Argument(..., help="The name of the index for which to update the typo tolerance"),
+    typo_tolerance: str = Argument(
+        ..., help="Typo tolerance for the index. This should contain JSON passed as a string"
+    ),
+    url: Optional[str] = URL_OPTION,
+    master_key: Optional[str] = MASTER_KEY_OPTION,
+    wait: bool = WAIT_OPTION,
+    raw: bool = RAW_OPTION,
+) -> None:
+    """Update the typo tolerance of an index."""
+
+    client_index = create_client(url, master_key).index(index)
+    try:
+        with console.status("Updating typo tolerance..."):
+            process_request(
+                client_index,
+                partial(client_index.update_typo_tolerance, json.loads(typo_tolerance)),
+                client_index.get_typo_tolerance,
+                wait,
+                "Update Typo Tolerance",
+                raw,
+            )
+    except json.decoder.JSONDecodeError:
+        print_json_parse_error_message(typo_tolerance)
 
 
 if __name__ == "__main__":
