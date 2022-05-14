@@ -943,6 +943,12 @@ def test_reset_settings_no_wait(
         "stopWords": ["a", "the"],
         "synonyms": {"logan": ["marvel", "wolverine"]},
         "distinctAttribute": "title",
+        "typoTolerance": {
+            "disableOnAttributes": [],
+            "disableOnWords": [],
+            "enabled": True,
+            "minWordSizeForTypos": {"oneTypo": 5, "twoTypos": 9},
+        },
     }
     update = index.update_settings(updated_settings)
     index.wait_for_task(update["uid"])
@@ -975,6 +981,12 @@ def test_reset_settings_wait(raw, wait_flag, index_uid, test_runner, client):
         "stopWords": ["a", "the"],
         "synonyms": {"logan": ["marvel", "wolverine"]},
         "distinctAttribute": "title",
+        "typoTolerance": {
+            "disableOnAttributes": [],
+            "disableOnWords": [],
+            "enabled": True,
+            "minWordSizeForTypos": {"oneTypo": 5, "twoTypos": 9},
+        },
     }
     update = index.update_settings(updated_settings)
     index.wait_for_task(update["uid"])
@@ -1568,6 +1580,12 @@ def test_update_settings_no_wait(
         "stopWords": ["a", "the"],
         "synonyms": {"logan": ["marvel", "wolverine"]},
         "distinctAttribute": "title",
+        "typoTolerance": {
+            "disableOnAttributes": [],
+            "disableOnWords": [],
+            "enabled": True,
+            "minWordSizeForTypos": {"oneTypo": 5, "twoTypos": 9},
+        },
     }
 
     args = [
@@ -1650,6 +1668,12 @@ def test_update_settings(
         "stopWords": ["a", "the"],
         "synonyms": {"logan": ["marvel", "wolverine"]},
         "distinctAttribute": "title",
+        "typoTolerance": {
+            "disableOnAttributes": [],
+            "disableOnWords": [],
+            "enabled": True,
+            "minWordSizeForTypos": {"oneTypo": 5, "twoTypos": 9},
+        },
     }
 
     args = [

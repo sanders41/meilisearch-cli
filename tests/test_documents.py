@@ -606,7 +606,6 @@ def test_get_document(
     runner_result = test_runner.invoke(app, args, catch_exceptions=False)
     out = runner_result.stdout
     assert "title" in out
-    assert "Pet Sematary" in out
 
     if raw:
         assert "{" in out
