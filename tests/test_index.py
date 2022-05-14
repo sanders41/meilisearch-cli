@@ -1,3 +1,5 @@
+import json
+import re
 from unittest.mock import patch
 
 import pytest
@@ -1207,6 +1209,102 @@ def test_reset_synonyms_error(mock_get, test_runner, index_uid):
 
 
 @pytest.mark.parametrize("use_env", [True, False])
+def test_reset_typo_tolerance_no_wait(
+    use_env,
+    index_uid,
+    base_url,
+    master_key,
+    test_runner,
+    client,
+    monkeypatch,
+):
+    typo_tolerance_update = {
+        "enabled": False,
+        "disableOnAttributes": ["title"],
+        "disableOnWords": ["spiderman"],
+        "minWordSizeForTypos": {"oneTypo": 10, "twoTypos": 20},
+    }
+    args = ["index", "reset-typo-tolerance", index_uid]
+
+    if use_env:
+        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
+        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
+    else:
+        args.append("--url")
+        args.append(base_url)
+        args.append("--master-key")
+        args.append(master_key)
+
+    index = client.index(index_uid)
+    update = index.update_typo_tolerance(typo_tolerance_update)
+    index.wait_for_task(update["uid"])
+
+    assert index.get_typo_tolerance() == typo_tolerance_update
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+
+    out = runner_result.stdout
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_reset_type_tolerance_wait(
+    wait_flag,
+    raw,
+    index_uid,
+    test_runner,
+    client,
+):
+    typo_tolerance_update = {
+        "enabled": False,
+        "disableOnAttributes": ["title"],
+        "disableOnWords": ["spiderman"],
+        "minWordSizeForTypos": {"oneTypo": 10, "twoTypos": 20},
+    }
+    args = ["index", "reset-typo-tolerance", index_uid, wait_flag]
+
+    if raw:
+        args.append("--raw")
+
+    index = client.index(index_uid)
+    update = index.update_typo_tolerance(typo_tolerance_update)
+    index.wait_for_task(update["uid"])
+
+    assert index.get_typo_tolerance() == typo_tolerance_update
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+
+    out = runner_result.stdout
+    pattern = re.compile(r'"?enabled"?: t|True')
+    assert pattern.search(out)
+
+
+def test_reset_typo_tolerance_no_url_master_key(index_uid, test_runner):
+    runner_result = test_runner.invoke(app, ["index", "reset-typo-tolerance", index_uid])
+    out = runner_result.stdout
+
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_reset_typo_tolerance_index_not_found_error(test_runner, index_uid):
+    runner_result = test_runner.invoke(app, ["index", "reset-typo-tolerance", index_uid, "-w"])
+    out = runner_result.stdout
+    assert "not found" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+@patch.object(Index, "reset_typo_tolerance")
+def test_reset_typo_tolerance_error(mock_get, test_runner, index_uid):
+    mock_get.side_effect = MeiliSearchApiError("bad", Response())
+    with pytest.raises(MeiliSearchApiError):
+        test_runner.invoke(
+            app, ["index", "reset-typo-tolerance", index_uid], catch_exceptions=False
+        )
+
+
+@pytest.mark.parametrize("use_env", [True, False])
 def test_update_displayed_attributes_no_wait(
     use_env,
     index_uid,
@@ -1996,6 +2094,94 @@ def test_update_synonyms_json_error(
     args = [
         "index",
         "update-synonyms",
+        index_uid,
+        "test",
+    ]
+
+    runner_result = test_runner.invoke(app, args)
+
+    out = runner_result.stdout
+    assert "Unable to parse" in out
+
+
+@pytest.mark.parametrize("use_env", [True, False])
+def test_update_typo_tolerance_no_wait(
+    use_env,
+    index_uid,
+    base_url,
+    master_key,
+    test_runner,
+    client,
+    monkeypatch,
+):
+    typo_tolerance = '{"enabled": false, "disableOnAttributes": ["title"], "disableOnWords": ["spiderman"], "minWordSizeForTypos": {"oneTypo": 10, "twoTypos": 20}}'
+    args = ["index", "update-typo-tolerance", index_uid, typo_tolerance]
+
+    if use_env:
+        monkeypatch.setenv("MEILI_HTTP_ADDR", base_url)
+        monkeypatch.setenv("MEILI_MASTER_KEY", master_key)
+    else:
+        args.append("--url")
+        args.append(base_url)
+        args.append("--master-key")
+        args.append(master_key)
+
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
+    runner_result = test_runner.invoke(app, args, catch_exceptions=False)
+    out = runner_result.stdout
+
+    update_id = get_update_id_from_output(out)
+    index.wait_for_task(update_id)
+
+    assert index.get_typo_tolerance() == json.loads(typo_tolerance)
+    assert "uid" in out
+
+
+@pytest.mark.parametrize("wait_flag", ["--wait", "-w"])
+@pytest.mark.parametrize("raw", [True, False])
+@pytest.mark.usefixtures("env_vars")
+def test_update_typo_tolerance_wait(
+    raw,
+    wait_flag,
+    index_uid,
+    test_runner,
+    client,
+):
+    typo_tolerance = '{"enabled": false, "disableOnAttributes": ["title"], "disableOnWords": ["spiderman"], "minWordSizeForTypos": {"oneTypo": 10, "twoTypos": 20}}'
+    args = ["index", "update-typo-tolerance", index_uid, typo_tolerance, wait_flag]
+
+    if raw:
+        args.append("--raw")
+
+    response = client.create_index(index_uid)
+    client.wait_for_task(response["uid"])
+    index = client.get_index(index_uid)
+    test_runner.invoke(app, args, catch_exceptions=False)
+
+    assert index.get_typo_tolerance() == json.loads(typo_tolerance)
+
+
+def test_update_typo_tolerance_no_url_master_key(index_uid, test_runner):
+    typo_tolerance = '{"enabled": false, "disableOnAttributes": ["title"], "disableOnWords": ["spiderman"], "minWordSizeForTypos": {"oneTypo": 10, "twoTypos": 20}}'
+    runner_result = test_runner.invoke(
+        app, ["index", "update-typo-tolerance", index_uid, typo_tolerance]
+    )
+    out = runner_result.stdout
+
+    assert "MEILI_HTTP_ADDR" in out
+    assert "MEILI_MASTER_KEY" in out
+
+
+@pytest.mark.usefixtures("env_vars")
+def test_update_typo_tolerance_json_error(
+    index_uid,
+    test_runner,
+):
+    args = [
+        "index",
+        "update-typo-tolerance",
         index_uid,
         "test",
     ]
