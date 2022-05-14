@@ -266,6 +266,12 @@ def search(
     sort: Optional[List[str]] = Option(
         None, help="Sort search results according to the attributes"
     ),
+    highlight_pre_tag: Optional[str] = Option(None, help="The opening tag for highlighting text."),
+    highlight_post_tag: Optional[str] = Option(None, help="The closing tag for highlighting text."),
+    crop_marker: Optional[str] = Option(
+        None,
+        help="Marker to display when the number of words excedes the `crop_length`.",
+    ),
     url: Optional[str] = URL_OPTION,
     master_key: Optional[str] = MASTER_KEY_OPTION,
     raw: bool = RAW_OPTION,
@@ -285,6 +291,9 @@ def search(
     set_search_param(search_params, attributes_to_hightlight, "attributesToHighlight")
     set_search_param(search_params, matches, "matches")
     set_search_param(search_params, sort, "sort")
+    set_search_param(search_params, highlight_pre_tag, "highlightPreTag")
+    set_search_param(search_params, highlight_post_tag, "highlightPostTag")
+    set_search_param(search_params, crop_marker, "cropMarker")
 
     try:
         with console.status("Searching..."):
