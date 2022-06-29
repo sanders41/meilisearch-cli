@@ -28,7 +28,7 @@ requests = "2.28.0"
 beautifulsoup4 = "4.11.1"
 
 [tool.poetry.dev-dependencies]
-black = "^22.3.0"
+black = "^22.6.0"
 flake8 = "^4.0.1"
 isort = "^5.10.1"
 mypy = "^0.961"
