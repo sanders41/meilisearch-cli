@@ -7,7 +7,7 @@ from typing import Any, Callable, Generator
 
 from meilisearch.client import Client
 from meilisearch.config import Config
-from meilisearch.errors import MeiliSearchApiError, MeiliSearchError
+from meilisearch.errors import MeilisearchApiError, MeilisearchError
 from meilisearch.index import Index
 from meilisearch.task import get_task
 from rich.console import group
@@ -26,7 +26,7 @@ def check_index_status(config: Config, index_id: str, task_id: int) -> None:
             console.print(f"Index [error_highlight]{index_id}[/] not found", style="error")
             sys.exit(0)
         else:
-            raise MeiliSearchError(result["error"]["message"])
+            raise MeilisearchError(result["error"]["message"])
 
 
 def create_client(url: str | None, master_key: str | None) -> Client:
@@ -93,7 +93,7 @@ def create_panel(
     return Panel(info, title=title, border_style=panel_border_color, padding=padding)
 
 
-def handle_meilisearch_api_error(error: MeiliSearchApiError, index_name: str) -> None:
+def handle_meilisearch_api_error(error: MeilisearchApiError, index_name: str) -> None:
     if error.code == "index_not_found":
         console.print(f"Index [error_highlight]{index_name}[/] not found", style="error")
     else:

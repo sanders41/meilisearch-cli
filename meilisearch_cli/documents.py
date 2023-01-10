@@ -5,7 +5,7 @@ from functools import partial
 from pathlib import Path
 from typing import List, Optional
 
-from meilisearch.errors import MeiliSearchApiError
+from meilisearch.errors import MeilisearchApiError
 from rich.traceback import install
 from typer import Argument, Option, Typer
 
@@ -211,7 +211,7 @@ def get(
         with console.status("Getting document..."):
             document = client.index(index).get_document(document_id)
             print_panel_or_raw(raw, document, "Document")
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -228,7 +228,7 @@ def get_all(
         with console.status("Getting documents..."):
             status = client.index(index).get_documents()
             print_panel_or_raw(raw, status, "Documents")
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
