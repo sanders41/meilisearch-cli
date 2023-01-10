@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any, List, Optional
 
 from meilisearch.client import Client
-from meilisearch.errors import MeiliSearchApiError
+from meilisearch.errors import MeilisearchApiError
 from rich.console import Group
 from rich.panel import Panel
 from rich.traceback import install
@@ -48,14 +48,14 @@ def docs() -> None:
 
 @app.command()
 def api_docs_link() -> None:
-    """Gives a clickable link to the MeiliSearch API documenation. This can be used in terminals that don't support links."""
+    """Gives a clickable link to the Meilisearch API documenation. This can be used in terminals that don't support links."""
 
     console.print("https://docs.meilisearch.com/reference/api/")
 
 
 @app.command()
 def docs_link() -> None:
-    """Gives a clickable link to the MeiliSearch documenation. This can be used in terminals that don't support links."""
+    """Gives a clickable link to the Meilisearch documenation. This can be used in terminals that don't support links."""
 
     console.print("https://docs.meilisearch.com/")
 
@@ -196,7 +196,7 @@ def get_version(
     master_key: Optional[str] = MASTER_KEY_OPTION,
     raw: bool = RAW_OPTION,
 ) -> None:
-    """Gets the MeiliSearch version information."""
+    """Gets the Meilisearch version information."""
 
     client = create_client(url, master_key)
     with console.status("Getting version..."):
@@ -311,7 +311,7 @@ def search(
                 panel_group = Group(info_panel, hits_panel)
                 panel = Panel(panel_group, title="Search Results", border_style=PANEL_BORDER_COLOR)
                 console.print(panel)
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 

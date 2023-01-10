@@ -1,4 +1,4 @@
-# MeiliSearch CLI
+# Meilisearch CLI
 
 [![Tests Status](https://github.com/sanders41/meilisearch-cli/workflows/Testing/badge.svg?branch=main&event=push)](https://github.com/sanders41/meilisearch-cli/actions?query=workflow%3ATesting+branch%3Amain+event%3Apush)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/sanders41/meilisearch-cli/main.svg)](https://results.pre-commit.ci/latest/github/sanders41/meilisearch-cli/main)
@@ -6,7 +6,7 @@
 [![PyPI version](https://badge.fury.io/py/meilisearch-cli.svg)](https://badge.fury.io/py/meilisearch-cli)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/meilisearch-cli?color=5cc141)](https://github.com/sanders41/meilisearch-cli)
 
-A CLI for working with MeiliSearch
+A CLI for working with Meilisearch
 
 ## Installation
 
@@ -16,7 +16,7 @@ Installation with [pipx](https://github.com/pypa/pipx) is recommended.
 pipx install meilisearch-cli
 ```
 
-Alternatively MeiliSearch CLI can be installed with pip.
+Alternatively Meilisearch CLI can be installed with pip.
 
 ```sh
 pip install meilisearch-cli
@@ -24,7 +24,7 @@ pip install meilisearch-cli
 
 ## Usage
 
-All commands require both a url for MeiliSearch and a master key. These values can either be passed
+All commands require both a url for Meilisearch and a master key. These values can either be passed
 using the flags `--url` and `--master-key`, or can be read from the environment variables
 `MEILI_HTTP_ADDR` and `MEILI_MASTER_KEY`. The one exception is the `health` comman only requires the
 url, and does not take a master key.
@@ -67,17 +67,17 @@ meilisearch-cli add-documents --help
 
 ### Documentation
 
-The MeiliSearch documentation sections can be displayed with clickable links to each section. The
+The Meilisearch documentation sections can be displayed with clickable links to each section. The
 links are built based on the current state of the documentation and will automatically stay
 up-to-date with the latest documentation. To follow the links command + click on a Mac or
 control + click on Linux and Windows. Note that some terminals do not support clickable links.
 In this case the documentation tree will be displayed but not be clickable.
 
-![MeiliSearch Documentation](https://github.com/sanders41/meilisearch-cli/raw/main/imgs/docs.png)
+![Meilisearch Documentation](https://github.com/sanders41/meilisearch-cli/raw/main/imgs/docs.png)
 
-## Compatibility with MeiliSearch
+## Compatibility with Meilisearch
 
-This package only guarantees compatibility with [version v1 of MeiliSearch](https://github.com/meilisearch/meilisearch/releases/tag/v1.0.0).
+This package only guarantees compatibility with [version v1 of Meilisearch](https://github.com/meilisearch/meilisearch/releases/tag/v1.0.0).
 
 ## Contributing
 

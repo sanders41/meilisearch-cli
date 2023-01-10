@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "meilisearch-cli"
 version = "0.11.0"
-description = "CLI for MeiliSearch"
+description = "CLI for Meilisearch"
 authors = ["Paul Sanders <psanders1@gmail.com>"]
 license = "MIT"
 readme = "README.md"
