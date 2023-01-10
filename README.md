@@ -77,7 +77,7 @@ In this case the documentation tree will be displayed but not be clickable.
 
 ## Compatibility with MeiliSearch
 
-This package only guarantees compatibility with [version v0.27 of MeiliSearch](https://github.com/meilisearch/MeiliSearch/releases/tag/v0.27.0).
+This package only guarantees compatibility with [version v1 of MeiliSearch](https://github.com/meilisearch/meilisearch/releases/tag/v1.0.0).
 
 ## Contributing
 
