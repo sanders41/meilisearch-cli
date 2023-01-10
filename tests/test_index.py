@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 from meilisearch.client import Client
-from meilisearch.errors import MeiliSearchApiError
+from meilisearch.errors import MeilisearchApiError
 from meilisearch.index import Index
 from requests.models import Response
 
@@ -73,8 +73,8 @@ def test_create_index_exists_error(test_runner, client, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Client, "create_index")
 def test_create_index_error(mock_create, test_runner, index_uid):
-    mock_create.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_create.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(
             app, ["index", "create", index_uid, "--primary-key", "alt_id"], catch_exceptions=False
         )
@@ -122,8 +122,8 @@ def test_delete_index_not_found_error(test_runner):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "delete")
 def test_delete_index_error(mock_delete, test_runner, index_uid):
-    mock_delete.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_delete.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(app, ["index", "delete", index_uid], catch_exceptions=False)
 
 
@@ -175,8 +175,8 @@ def test_get_index_not_found_error(test_runner, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Client, "get_raw_index")
 def test_get_index_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(app, ["index", "get", index_uid], catch_exceptions=False)
 
 
@@ -275,8 +275,8 @@ def test_get_primary_key_not_found_error(test_runner, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "get_primary_key")
 def test_get_primary_key_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(app, ["index", "get-primary-key", index_uid], catch_exceptions=False)
 
 
@@ -336,8 +336,8 @@ def test_get_settings_index_not_found_error(test_runner, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "get_settings")
 def test_get_settings_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(app, ["index", "get-settings", index_uid], catch_exceptions=False)
 
 
@@ -388,8 +388,8 @@ def test_get_stats_index_not_found_error(test_runner, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "get_stats")
 def test_get_stats_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(app, ["index", "get-stats", index_uid], catch_exceptions=False)
 
 
@@ -448,8 +448,8 @@ def test_get_task_index_not_found_error(test_runner, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "get_task")
 def test_get_task_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(app, ["index", "get-task", index_uid, "0"], catch_exceptions=False)
 
 
@@ -557,8 +557,8 @@ def test_reset_displayed_attributes_failed_status(mock_get, test_runner, index_u
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "reset_displayed_attributes")
 def test_reset_displayed_attributes_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(
             app, ["index", "reset-displayed-attributes", index_uid], catch_exceptions=False
         )
@@ -658,8 +658,8 @@ def test_reset_distinct_attribute_index_not_found_error(test_runner, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "reset_distinct_attribute")
 def test_reset_distinct_attribute_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(
             app, ["index", "reset-distinct-attribute", index_uid], catch_exceptions=False
         )
@@ -743,8 +743,8 @@ def test_reset_filterable_attributes_index_not_found_error(test_runner, index_ui
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "reset_filterable_attributes")
 def test_reset_filterable_attributes_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(
             app, ["index", "reset-filterable-attributes", index_uid], catch_exceptions=False
         )
@@ -829,8 +829,8 @@ def test_reset_ranking_rules_index_not_found_error(test_runner, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "reset_ranking_rules")
 def test_reset_ranking_rules_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(app, ["index", "reset-ranking-rules", index_uid], catch_exceptions=False)
 
 
@@ -912,8 +912,8 @@ def test_reset_searchable_attributes_index_not_found_error(test_runner, index_ui
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "reset_searchable_attributes")
 def test_reset_searchable_attributes_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(
             app, ["index", "reset-searchable-attributes", index_uid], catch_exceptions=False
         )
@@ -1041,8 +1041,8 @@ def test_reset_settings_index_not_found_error(test_runner, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "reset_settings")
 def test_reset_settings_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(app, ["index", "reset-settings", index_uid], catch_exceptions=False)
 
 
@@ -1122,8 +1122,8 @@ def test_reset_stop_words_index_not_found_error(test_runner, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "reset_stop_words")
 def test_reset_stop_words_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(app, ["index", "reset-stop-words", index_uid], catch_exceptions=False)
 
 
@@ -1203,8 +1203,8 @@ def test_reset_synonyms_index_not_found_error(test_runner, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "reset_synonyms")
 def test_reset_synonyms_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(app, ["index", "reset-synonyms", index_uid], catch_exceptions=False)
 
 
@@ -1297,8 +1297,8 @@ def test_reset_typo_tolerance_index_not_found_error(test_runner, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "reset_typo_tolerance")
 def test_reset_typo_tolerance_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(
             app, ["index", "reset-typo-tolerance", index_uid], catch_exceptions=False
         )
@@ -1492,8 +1492,8 @@ def test_update_index_not_found_error(test_runner, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "update")
 def test_update_index_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(app, ["index", "update", index_uid, "test"], catch_exceptions=False)
 
 

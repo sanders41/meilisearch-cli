@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 import requests
-from meilisearch.errors import MeiliSearchError
+from meilisearch.errors import MeilisearchError
 from meilisearch.index import Index
 
 from meilisearch_cli._config import console
@@ -45,7 +45,7 @@ def test_check_index_status_error(mock_get, client):
 
     mock_get.side_effect = mock_response
 
-    with pytest.raises(MeiliSearchError):
+    with pytest.raises(MeilisearchError):
         check_index_status(client.config, "test", 1)
 
 

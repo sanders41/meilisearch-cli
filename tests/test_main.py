@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import jwt
 import pytest
-from meilisearch.errors import MeiliSearchApiError
+from meilisearch.errors import MeilisearchApiError
 from meilisearch.index import Index
 from requests.models import Response
 from tomlkit import parse
@@ -36,7 +36,7 @@ def test_key(client):
 
     try:
         client.delete_key(key["key"])
-    except MeiliSearchApiError:
+    except MeilisearchApiError:
         pass
 
 
@@ -50,7 +50,7 @@ def test_key_info(client):
         keys = client.get_keys()
         key = next(x for x in keys["results"] if x["description"] == key_info["description"])
         client.delete_key(key["key"])
-    except MeiliSearchApiError:
+    except MeilisearchApiError:
         pass
 
 
@@ -226,7 +226,7 @@ def test_delete_key(test_key, test_runner, client):
 
     assert "204" in out
 
-    with pytest.raises(MeiliSearchApiError):
+    with pytest.raises(MeilisearchApiError):
         client.get_key(test_key["key"])
 
 
@@ -539,6 +539,6 @@ def test_search_index_not_found_error(test_runner, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "search")
 def test_search_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(app, ["search", index_uid, ""], catch_exceptions=False)

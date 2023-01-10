@@ -5,7 +5,7 @@ import sys
 from functools import partial
 from typing import Any, List, Optional
 
-from meilisearch.errors import MeiliSearchApiError
+from meilisearch.errors import MeilisearchApiError
 from rich.traceback import install
 from typer import Argument, Option, Typer
 
@@ -50,7 +50,7 @@ def create(
         del index_dict["config"]
         del index_dict["http"]
         print_panel_or_raw(raw, index_dict, "Index")
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -75,7 +75,7 @@ def delete(
                 title="Delete Index",
             )
         )
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -93,7 +93,7 @@ def get(
         with console.status("Getting index..."):
             returned_index = client.get_raw_index(index)
             print_panel_or_raw(raw, returned_index, "Index")
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -125,7 +125,7 @@ def get_primary_key(
             primary_key = client.index(index).get_primary_key()
             panel = create_panel(primary_key, title="Primary Key")
             console.print(panel)
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -143,7 +143,7 @@ def get_stats(
         with console.status("Getting stats..."):
             settings = client.index(index).get_stats()
             print_panel_or_raw(raw, settings, "Stats")
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -163,7 +163,7 @@ def get_tasks(
         with console.status("Getting update status..."):
             status = client.index(index).get_tasks()
             print_panel_or_raw(raw, status, "Update Status")
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -181,7 +181,7 @@ def get_settings(
         with console.status("Getting settings..."):
             settings = client.index(index).get_settings()
             print_panel_or_raw(raw, settings, "Settings")
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -202,7 +202,7 @@ def get_task(
         with console.status("Getting update status..."):
             status = client.index(index).get_task(update_id)
             print_panel_or_raw(raw, status, "Update Status")
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -229,7 +229,7 @@ def reset_displayed_attributes(
                 "Reset Displayed Attributes",
                 raw,
             )
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -256,7 +256,7 @@ def reset_distinct_attribute(
                 "Reset Distinct Attribute",
                 raw,
             )
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -283,7 +283,7 @@ def reset_filterable_attributes(
                 "Reset Filterable Attributes",
                 raw,
             )
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -308,7 +308,7 @@ def reset_ranking_rules(
                 "Reset Ranking Rules",
                 raw,
             )
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -335,7 +335,7 @@ def reset_searchable_attributes(
                 "Reset Searchable Attributes",
                 raw,
             )
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -360,7 +360,7 @@ def reset_settings(
                 "Reset Settings",
                 raw,
             )
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -385,7 +385,7 @@ def reset_stop_words(
                 "Reset Stop Words",
                 raw,
             )
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -410,7 +410,7 @@ def reset_synonyms(
                 "Reset Synonyms",
                 raw,
             )
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -435,7 +435,7 @@ def reset_typo_tolerance(
                 "Reset Typo Tolerance",
                 raw,
             )
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 
@@ -522,7 +522,7 @@ def update(
             console.print_json(json.dumps(index_display))
         else:
             console.print(index_display)
-    except MeiliSearchApiError as e:
+    except MeilisearchApiError as e:
         handle_meilisearch_api_error(e, index)
 
 

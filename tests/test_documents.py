@@ -2,7 +2,7 @@ import json
 from unittest.mock import patch
 
 import pytest
-from meilisearch.errors import MeiliSearchApiError
+from meilisearch.errors import MeilisearchApiError
 from meilisearch.index import Index
 from requests.models import Response
 
@@ -443,7 +443,7 @@ def test_delete_document(
     if not wait_flag:
         client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
-    with pytest.raises(MeiliSearchApiError):
+    with pytest.raises(MeilisearchApiError):
         client.index(index_uid).get_document(document_id)
 
     assert expected in out
@@ -501,7 +501,7 @@ def test_delete_documents(
         client.index(index_uid).wait_for_task(get_update_id_from_output(out))
 
     for document_id in [document_id_1, document_id_2]:
-        with pytest.raises(MeiliSearchApiError):
+        with pytest.raises(MeilisearchApiError):
             client.index(index_uid).get_document(document_id)
 
     assert expected in out
@@ -572,8 +572,8 @@ def test_get_all_update_status_index_not_found_error(test_runner, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "get_tasks")
 def test_get_all_update_status_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(app, ["index", "get-tasks", index_uid], catch_exceptions=False)
 
 
@@ -630,8 +630,8 @@ def test_get_document_index_not_found_error(test_runner, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "get_document")
 def test_get_document_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(app, ["documents", "get", index_uid, "test"], catch_exceptions=False)
 
 
@@ -691,8 +691,8 @@ def test_get_documents_index_not_found_error(test_runner, index_uid):
 @pytest.mark.usefixtures("env_vars")
 @patch.object(Index, "get_documents")
 def test_get_documents_error(mock_get, test_runner, index_uid):
-    mock_get.side_effect = MeiliSearchApiError("bad", Response())
-    with pytest.raises(MeiliSearchApiError):
+    mock_get.side_effect = MeilisearchApiError("bad", Response())
+    with pytest.raises(MeilisearchApiError):
         test_runner.invoke(app, ["documents", "get-all", index_uid], catch_exceptions=False)
 
 

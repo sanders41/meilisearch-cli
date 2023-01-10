@@ -94,7 +94,7 @@ def get_links() -> list[str]:
 
 
 def split_link(link: str) -> list[str]:
-    split = link.replace("https://docs.meilisearch.com", "MeiliSearch Documentation").split("/")
+    split = link.replace("https://docs.meilisearch.com", "Meilisearch Documentation").split("/")
     if split[-1] == "":
         split.pop()
     return split
