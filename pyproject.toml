@@ -23,7 +23,7 @@ include = ["meilisearch_cli/py.typed"]
 python = "^3.7"
 meilisearch = "^0.18.3"
 typer = "0.7.0"
-rich = "13.3.4"
+rich = "13.3.5"
 requests = "2.30.0"
 beautifulsoup4 = "4.12.2"
 
